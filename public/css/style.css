@@ -1088,6 +1088,27 @@ textarea {
   flex-direction: column;
   gap: .85rem;
   background: #f7faf7;
+  position: relative;
+}
+
+.chat-messages>* {
+  position: relative;
+  z-index: 1;
+}
+
+.chat-messages::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 32%;
+  aspect-ratio: 3/4;
+  background: url('/images/GIO.png') no-repeat center center;
+  background-size: contain;
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .chat-messages::-webkit-scrollbar {
