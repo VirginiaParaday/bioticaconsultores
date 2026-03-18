@@ -234,9 +234,52 @@
         <span class="eyebrow light">Plataforma de Gestión</span>
         <h2>Solicita tu servicio <em>ambiental</em></h2>
         <p>
-          Completa tu solicitud en el formulario o conversa con GIO nuestro
-          chatbox y recibe tu número de orden para seguimiento inmediato.
+          Completa tu solicitud en el formulario o conversa con
+          <span
+            id="gio-trigger"
+            onclick="openGioVideo()"
+            title="Ver cómo funciona GIO"
+            >GIO</span
+          >
+          nuestro chatbox y recibe tu número de orden para seguimiento
+          inmediato.
         </p>
+
+        <!-- Modal video GIO -->
+        <div
+          class="gio-video-overlay hidden"
+          id="gio-video-modal"
+          onclick="closeGioVideo(event)"
+        >
+          <div class="gio-video-box">
+            <div class="gio-video-header">
+              <span class="gio-video-title">🌿 ¿Cómo funciona GIO?</span>
+              <button
+                class="gio-video-close"
+                onclick="closeGioVideo()"
+                aria-label="Cerrar"
+              >
+                ✕
+              </button>
+            </div>
+            <video
+              id="gio-video-player"
+              controls
+              controlsList="nofullscreen nodownload noplaybackrate"
+              disablePictureInPicture
+              playsinline
+              style="
+                width: 100%;
+                border-radius: 0 0 14px 14px;
+                display: block;
+                background: #000;
+              "
+            >
+              <source src="/videos/GIO.mp4" type="video/mp4" />
+              Tu navegador no soporta la reproducción de video.
+            </video>
+          </div>
+        </div>
       </div>
       <div class="form-wrapper">
         <div class="form-right form-centered">
@@ -3397,6 +3440,18 @@
       </div>
       <div class="footer-bottom">
         <p>© 2026 Biótica Consultores Ltda. Todos los derechos reservados.</p>
+        <p
+          style="
+            margin-top: 0.35rem;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.25);
+          "
+        >
+          Desarrollado por
+          <span style="color: rgba(255, 255, 255, 0.4); font-weight: 600"
+            >SAJUVI S.A.S.</span
+          >
+        </p>
       </div>
     </footer>
 
@@ -3411,6 +3466,40 @@
           document.getElementById("nav-cuenta")?.classList.remove("hidden");
         }
       })();
+
+      // GIO video modal
+      function openGioVideo() {
+        document.getElementById("gio-video-modal").classList.remove("hidden");
+        const v = document.getElementById("gio-video-player");
+        if (v) {
+          v.playbackRate = 0.75;
+          v.play();
+        }
+      }
+      function closeGioVideo(e) {
+        if (
+          e &&
+          e.target !== document.getElementById("gio-video-modal") &&
+          !e.target.classList.contains("gio-video-close")
+        )
+          return;
+        document.getElementById("gio-video-modal").classList.add("hidden");
+        const v = document.getElementById("gio-video-player");
+        if (v) {
+          v.pause();
+          v.currentTime = 0;
+        }
+      }
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          document.getElementById("gio-video-modal")?.classList.add("hidden");
+          const v = document.getElementById("gio-video-player");
+          if (v) {
+            v.pause();
+            v.currentTime = 0;
+          }
+        }
+      });
     </script>
   </body>
 </html>

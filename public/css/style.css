@@ -1679,3 +1679,107 @@ textarea {
   color: var(--text-soft);
   margin: .25rem 0;
 }
+
+/* GIO TRIGGER + VIDEO MODAL */
+#gio-trigger {
+  color: var(--green-light);
+  cursor: pointer;
+  font-weight: 400;
+  transition: color .2s ease, font-weight .2s ease;
+  border-bottom: 1px dashed rgba(107, 191, 122, .4);
+}
+
+#gio-trigger:hover {
+  color: #f5c842;
+  border-bottom-color: #f5c842;
+}
+
+.gio-video-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 600;
+  background: rgba(0, 0, 0, .7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeInOverlay .2s ease;
+}
+
+.gio-video-overlay.hidden {
+  display: none !important;
+}
+
+.gio-video-box {
+  width: 100%;
+  max-width: 720px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, .5);
+  animation: slideUpModal .25s ease;
+}
+
+.gio-video-header {
+  background: var(--green-deep);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .85rem 1.25rem;
+}
+
+.gio-video-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1rem;
+  color: var(--white);
+  font-weight: 600;
+}
+
+.gio-video-close {
+  background: rgba(255, 255, 255, .1);
+  border: none;
+  color: rgba(255, 255, 255, .7);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: .9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .2s ease;
+}
+
+.gio-video-close:hover {
+  background: rgba(255, 255, 255, .25);
+  color: var(--white);
+}
+
+/* Ocultar timeline y botón fullscreen del video GIO */
+#gio-video-player::-webkit-media-controls-timeline {
+  display: none !important;
+}
+
+#gio-video-player::-webkit-media-controls-current-time-display {
+  display: none !important;
+}
+
+#gio-video-player::-webkit-media-controls-time-remaining-display {
+  display: none !important;
+}
+
+#gio-video-player::-webkit-media-controls-fullscreen-button {
+  display: none !important;
+}
+
+#gio-video-player::-webkit-media-controls-picture-in-picture-button {
+  display: none !important;
+}
+
+#gio-video-player::-webkit-media-controls-overflow-button {
+  display: none !important;
+}
+
+#gio-video-player::-webkit-media-controls-toggle-closed-captions-button {
+  display: none !important;
+}
