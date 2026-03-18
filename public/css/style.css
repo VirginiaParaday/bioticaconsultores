@@ -395,7 +395,8 @@ em {
   font-size: clamp(2.5rem, 6vw, 4rem);
   color: var(--white);
   margin-bottom: 1.25rem;
-  font-weight: 700;
+  font-weight: 800;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .hero-sub {
@@ -665,6 +666,8 @@ em {
   font-size: clamp(1.8rem, 3.5vw, 2.5rem);
   margin-bottom: 0.75rem;
   color: var(--white);
+  font-family: 'Nunito Sans', sans-serif;
+  font-weight: 800;
 }
 
 .form-header-centered p {
