@@ -817,6 +817,21 @@ textarea {
 }
 
 /* FILE UPLOAD */
+.file-drop-desc {
+  font-size: 0.76rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+  max-width: 340px;
+  margin-top: 0.4rem;
+}
+
+.field-hint {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  margin: 0.25rem 0 0.75rem;
+  line-height: 1.5;
+}
+
 .file-upload {
   position: relative;
 }
