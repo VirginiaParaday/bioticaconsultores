@@ -255,13 +255,45 @@ form?.addEventListener('submit', async (e) => {
 
   if (!valid) return;
 
-  setLoading(true);
+  // ── Verificar sesión y correo antes de enviar ──
+  const userLoggedIn = !!sessionStorage.getItem('biotica_user_auth');
+  if (!userLoggedIn) {
+    setLoading(true);
+    try {
+      const checkRes  = await fetch('/api/auth/check-email', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ correo })
+      });
+      const checkData = await checkRes.json();
+      setLoading(false);
 
+      if (checkData.tiene_cuenta) {
+        // Tiene cuenta → pedir que inicie sesión
+        showEmailModal('login', correo, checkData.usuario);
+        return;
+      } else {
+        // No tiene cuenta → proponer registro o continuar anónimo
+        showEmailModal('register', correo, null);
+        return;
+      }
+    } catch(e) {
+      setLoading(false);
+      // Si falla la verificación, continuar normal
+    }
+  }
+
+  await doSubmitForm();
+});
+
+// ── Función real de envío ──
+async function doSubmitForm() {
+  setLoading(true);
   const formData = new FormData(form);
+  const userId = sessionStorage.getItem('biotica_user_id');
+  if (userId) formData.append('usuario_id', userId);
   try {
     const res = await fetch('/api/solicitud', { method: 'POST', body: formData });
     const data = await res.json();
-
     if (data.success) {
       showFeedback(data.message, 'success');
       form.reset();
@@ -280,6 +312,56 @@ form?.addEventListener('submit', async (e) => {
   } finally {
     setLoading(false);
   }
+}
+
+// ── Modal de verificación de correo ──
+function showEmailModal(type, correo, usuario) {
+  const overlay = document.getElementById('email-check-modal');
+  const box     = document.getElementById('email-modal-content');
+  if (!overlay || !box) return;
+
+  // Guardar correo para usarlo después del login/registro
+  sessionStorage.setItem('biotica_pending_correo', correo);
+
+  if (type === 'login') {
+    box.innerHTML = `
+      <span class="emodal-icon">👋</span>
+      <div class="emodal-title">¡Ya tienes una cuenta!</div>
+      <p class="emodal-sub">El correo <strong>${correo}</strong> está registrado con el usuario <strong>@${usuario}</strong>.<br>Inicia sesión para vincular esta orden a tu cuenta y poder hacer seguimiento.</p>
+      <div class="emodal-btn-group">
+        <a href="/login-usuario.html" class="emodal-btn emodal-btn-primary" onclick="saveFormBeforeLeave()">Iniciar sesión y continuar</a>
+        <div class="emodal-divider">o</div>
+        <button class="emodal-btn emodal-btn-ghost" onclick="closeEmailModal(); doSubmitForm()">Continuar sin iniciar sesión</button>
+      </div>`;
+  } else {
+    box.innerHTML = `
+      <span class="emodal-icon">🌿</span>
+      <div class="emodal-title">¿Quieres hacer seguimiento?</div>
+      <p class="emodal-sub">Crea una cuenta gratis con <strong>${correo}</strong> y podrás ver el estado de todas tus órdenes en cualquier momento.<br>Si prefieres no registrarte, igual te enviaremos las actualizaciones por correo.</p>
+      <div class="emodal-btn-group">
+        <a href="/register.html" class="emodal-btn emodal-btn-primary" onclick="saveFormBeforeLeave()">Registrarme y continuar</a>
+        <div class="emodal-divider">o</div>
+        <button class="emodal-btn emodal-btn-outline" onclick="closeEmailModal(); doSubmitForm()">Solo seguimiento por correo</button>
+        <button class="emodal-btn emodal-btn-ghost" onclick="closeEmailModal()">Cancelar</button>
+      </div>`;
+  }
+
+  overlay.classList.remove('hidden');
+}
+
+function closeEmailModal() {
+  document.getElementById('email-check-modal')?.classList.add('hidden');
+}
+
+// Guardar correo del formulario en sessionStorage antes de ir a login/register
+function saveFormBeforeLeave() {
+  const correo = document.getElementById('correo')?.value.trim();
+  if (correo) sessionStorage.setItem('biotica_prefill_correo', correo);
+}
+
+// Cerrar modal al click fuera
+document.getElementById('email-check-modal')?.addEventListener('click', function(e) {
+  if (e.target === this) closeEmailModal();
 });
 
 // Animate stats on scroll

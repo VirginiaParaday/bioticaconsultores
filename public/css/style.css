@@ -1545,3 +1545,137 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* EMAIL CHECK MODAL */
+.email-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(26, 58, 42, .55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  animation: fadeInOverlay .2s ease;
+}
+
+.email-modal-overlay.hidden {
+  display: none !important;
+}
+
+@keyframes fadeInOverlay {
+  from {
+    opacity: 0
+  }
+
+  to {
+    opacity: 1
+  }
+}
+
+.email-modal-box {
+  background: var(--white);
+  border-radius: 20px;
+  padding: 2rem 2.25rem;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+  animation: slideUpModal .25s ease;
+}
+
+@keyframes slideUpModal {
+  from {
+    opacity: 0;
+    transform: translateY(20px)
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0)
+  }
+}
+
+.emodal-icon {
+  font-size: 2.5rem;
+  margin-bottom: .75rem;
+  display: block;
+}
+
+.emodal-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.25rem;
+  color: var(--green-deep);
+  margin-bottom: .4rem;
+}
+
+.emodal-sub {
+  font-size: .88rem;
+  color: var(--text-soft);
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.emodal-sub strong {
+  color: var(--green-vivid);
+}
+
+.emodal-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+}
+
+.emodal-btn {
+  width: 100%;
+  padding: .75rem 1rem;
+  border-radius: 50px;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+  text-align: center;
+  text-decoration: none;
+  display: block;
+}
+
+.emodal-btn-primary {
+  background: var(--green-vivid);
+  color: var(--white);
+}
+
+.emodal-btn-primary:hover {
+  background: var(--green-mid);
+}
+
+.emodal-btn-outline {
+  background: transparent;
+  color: var(--green-vivid);
+  border: 1.5px solid var(--green-vivid);
+}
+
+.emodal-btn-outline:hover {
+  background: var(--green-vivid);
+  color: var(--white);
+}
+
+.emodal-btn-ghost {
+  background: transparent;
+  color: var(--text-soft);
+  border: 1.5px solid #dde8db;
+  font-weight: 400;
+}
+
+.emodal-btn-ghost:hover {
+  border-color: var(--green-vivid);
+  color: var(--green-vivid);
+}
+
+.emodal-divider {
+  text-align: center;
+  font-size: .78rem;
+  color: var(--text-soft);
+  margin: .25rem 0;
+}

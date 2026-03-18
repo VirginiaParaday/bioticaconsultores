@@ -107,6 +107,20 @@ function extraerCamposDinamicos(body, subservicio) {
 // ============================================================
 const ADMINS = { 'Biotica': { password: 'Biotica/1973', rol: 'admin' } };
 
+// POST /api/auth/check-email
+app.post('/api/auth/check-email', async (req, res) => {
+  const { correo } = req.body;
+  if (!correo) return res.status(400).json({ error: 'Correo requerido.' });
+  try {
+    const { rows } = await pool.query(
+      'SELECT id, usuario FROM usuarios WHERE correo = $1 AND activo = true', [correo]
+    );
+    return res.json({ tiene_cuenta: rows.length > 0, usuario: rows[0]?.usuario || null });
+  } catch (err) {
+    return res.status(500).json({ error: 'Error interno.' });
+  }
+});
+
 app.post('/api/auth/login', (req, res) => {
   const { usuario, password } = req.body;
   if (!usuario || !password)
