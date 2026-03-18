@@ -244,9 +244,10 @@
 
     <!-- PANEL ASESORES -->
     <div id="panel-asesor-c" class="hidden">
-      <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--green-deep);margin-bottom:.4rem">Nuestros Asesores Virtuales</h2>
-      <p style="font-size:.88rem;color:var(--text-soft);margin-bottom:1.5rem">Selecciona un asesor para chatear en tiempo real o enviarle tu consulta.</p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1.25rem">
+      <div style="max-width:680px;margin:0 auto">
+        <h2 style="font-family:'Playfair Display',serif;font-size:1.3rem;color:var(--green-deep);margin-bottom:.4rem;text-align:center">Nuestros Asesores Virtuales</h2>
+        <p style="font-size:.88rem;color:var(--text-soft);margin-bottom:1.5rem;text-align:center">Selecciona un asesor para chatear en tiempo real o enviarle tu consulta.</p>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1.25rem">
 
         <div class="asesor-dash-card">
           <div class="asesor-dash-photo-wrap"><img src="/images/asesor-jose.webp" alt="José" class="asesor-dash-photo" onerror="this.style.display='none'"/></div>
@@ -281,12 +282,12 @@
           <button class="asesor-dash-btn" onclick="abrirChatUsuario('leonel')">💬 Chatear</button>
         </div>
 
-      </div>
-    </div>
+      </div><!-- /grid -->
+      </div><!-- /max-width wrapper -->
+    </div><!-- /panel-asesor-c -->
 
-  </div>
+  </div><!-- /cuenta-container -->
 
-  <!-- CONFIRM MODAL -->
   <div class="confirm-overlay" id="confirm-overlay">
     <div class="confirm-box">
       <h3>⚠️ Eliminar cuenta</h3>

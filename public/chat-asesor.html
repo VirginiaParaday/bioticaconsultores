@@ -474,21 +474,31 @@
       const sendBtn = document.getElementById("send-btn");
       const statusDot = document.getElementById("status-dot");
       const statusText = document.getElementById("status-text");
-      let ws, typingTimer;
 
-      function addMsg(text, from, nombre, ts) {
+      // ID único de esta sesión para distinguir mensajes propios
+      const clientId = Math.random().toString(36).slice(2);
+      let ws,
+        typingTimer,
+        myUserId = null;
+
+      function addMsg(text, side, nombre, ts) {
+        // side: 'me' | 'other' | 'system'
         const div = document.createElement("div");
-        div.className = `msg ${from === "yo" ? "from-me" : from === "system" ? "system" : "from-other"}`;
+        div.className = `msg ${side === "me" ? "from-me" : side === "system" ? "system" : "from-other"}`;
         const bubble = document.createElement("div");
         bubble.className = "msg-bubble";
         bubble.textContent = text;
         div.appendChild(bubble);
-        if (from !== "system" && (nombre || ts)) {
+        if (side !== "system") {
           const meta = document.createElement("div");
           meta.className = "msg-meta";
-          if (from !== "yo" && nombre)
-            meta.innerHTML = `<span class="msg-name">${nombre}</span> · ${ts || ""}`;
-          else meta.textContent = ts || "";
+          if (side === "me") {
+            meta.textContent = ts || "";
+          } else {
+            meta.innerHTML = nombre
+              ? `<span class="msg-name">${nombre}</span>${ts ? " · " + ts : ""}`
+              : ts || "";
+          }
           div.appendChild(meta);
         }
         chatBody.appendChild(div);
@@ -528,35 +538,59 @@
               room,
               rol: rolParam,
               nombre: userName,
+              clientId,
             }),
           );
         };
 
         ws.onmessage = (e) => {
-          const msg = JSON.parse(e.data);
+          let msg;
+          try {
+            msg = JSON.parse(e.data);
+          } catch {
+            return;
+          }
           removeTyping();
 
           if (msg.type === "joined") {
-            setStatus(msg.asesorOnline);
-            input.disabled = false;
-            sendBtn.disabled = false;
+            // Guardar userId asignado por el servidor
+            if (msg.userId) myUserId = msg.userId;
+            // Para asesor: mostrar estado de sala
+            if (rolParam === "asesor") {
+              setStatus(true);
+              input.disabled = false;
+              sendBtn.disabled = false;
+            } else {
+              setStatus(msg.asesorOnline);
+              input.disabled = false;
+              sendBtn.disabled = false;
+            }
+            addMsg(msg.text, "system");
             input.focus();
-            addMsg(msg.text, "system");
           }
+
           if (msg.type === "message") {
-            const fromMe = msg.from === "usuario" && msg.nombre === userName;
-            if (!fromMe)
-              addMsg(
-                msg.text,
-                msg.from === "asesor" ? "asesor" : "other",
-                msg.nombre,
-                msg.ts,
-              );
+            // Es mío si el clientId coincide
+            const isMe = msg.clientId === clientId;
+            if (isMe) {
+              addMsg(msg.text, "me", null, msg.ts);
+            } else {
+              addMsg(msg.text, "other", msg.nombre, msg.ts);
+            }
           }
+
           if (msg.type === "asesor-status") {
-            setStatus(msg.online);
+            if (rolParam !== "asesor") setStatus(msg.online);
             addMsg(msg.text, "system");
           }
+
+          if (msg.type === "user-joined") {
+            addMsg(`${msg.nombre} se ha unido al chat.`, "system");
+          }
+          if (msg.type === "user-left") {
+            addMsg(`${msg.nombre} ha salido del chat.`, "system");
+          }
+
           if (msg.type === "typing") {
             showTyping(msg.nombre);
             clearTimeout(typingTimer);
@@ -565,26 +599,24 @@
         };
 
         ws.onclose = () => {
-          setStatus(false);
+          if (rolParam !== "asesor") setStatus(false);
           statusText.textContent = "Reconectando...";
           setTimeout(connect, 3000);
+        };
+
+        ws.onerror = (err) => {
+          console.error("WS error:", err);
         };
       }
 
       function sendMessage() {
         const text = input.value.trim();
         if (!text || !ws || ws.readyState !== 1) return;
-        ws.send(JSON.stringify({ type: "message", text }));
-        addMsg(
-          text,
-          "yo",
-          null,
-          new Date().toLocaleTimeString("es-CO", {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        );
+        // Enviar con clientId para identificar mensajes propios
+        ws.send(JSON.stringify({ type: "message", text, clientId }));
         input.value = "";
+        // Cancelar typing
+        clearTimeout(typingTimer);
       }
 
       sendBtn.addEventListener("click", sendMessage);
@@ -594,9 +626,15 @@
           sendMessage();
         }
       });
+      let typingSent = false;
       input.addEventListener("input", () => {
-        if (ws && ws.readyState === 1)
+        if (ws && ws.readyState === 1 && !typingSent) {
           ws.send(JSON.stringify({ type: "typing" }));
+          typingSent = true;
+          setTimeout(() => {
+            typingSent = false;
+          }, 1500);
+        }
       });
 
       connect();

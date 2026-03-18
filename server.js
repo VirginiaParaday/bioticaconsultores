@@ -394,10 +394,10 @@ wss.on('connection', (ws) => {
 
     // ── JOIN ──────────────────────────────────────────────
     if (msg.type === 'join') {
-      const { room, rol, nombre } = msg; // rol: 'asesor' | 'usuario'
+      const { room, rol, nombre, clientId } = msg;
       if (!salas[room]) return;
 
-      ws.meta = { room, rol, nombre: nombre || 'Usuario' };
+      ws.meta = { room, rol, nombre: nombre || 'Usuario', clientId: clientId || '' };
 
       if (rol === 'asesor') {
         // Desconectar sesión anterior del asesor si existe
@@ -444,15 +444,17 @@ wss.on('connection', (ws) => {
 
     // ── MESSAGE ───────────────────────────────────────────
     if (msg.type === 'message') {
-      const { room, rol, nombre, text } = ws.meta;
-      if (!room || !text?.trim()) return;
+      const { room, rol, nombre, clientId } = ws.meta;
+      if (!room || !msg.text?.trim()) return;
       const payload = {
         type: 'message',
         from: rol === 'asesor' ? 'asesor' : 'usuario',
         nombre: nombre || 'Usuario',
-        text: msg.text,
+        clientId: clientId || '',
+        text: msg.text.trim(),
         ts: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
       };
+      // Enviar a TODOS — el cliente usa clientId para saber si es propio
       broadcast(room, payload);
     }
 
