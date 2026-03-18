@@ -739,10 +739,20 @@
                   timeStyle: "short",
                 })
               : "—";
+            const usuarioBadge = s.es_registrado
+              ? `<div style="display:flex;flex-direction:column;gap:2px">
+               <span class="badge Completada" style="font-size:.68rem">✓ Registrado</span>
+               <span style="font-size:.75rem;color:var(--text-soft)">${s.correo_registrado || s.correo}</span>
+               <span style="font-size:.72rem;color:var(--green-vivid)">@${s.usuario_registrado}</span>
+             </div>`
+              : `<div style="display:flex;flex-direction:column;gap:2px">
+               <span class="badge Cancelada" style="font-size:.68rem">Anónimo</span>
+               <span style="font-size:.75rem;color:var(--text-soft)">${s.correo}</span>
+             </div>`;
             return `<tr>
           <td><strong style="color:var(--green-vivid)">${s.orden}</strong></td>
           <td>${s.nombre}</td>
-          <td style="color:var(--text-soft)">${s.correo}</td>
+          <td>${usuarioBadge}</td>
           <td>${SVC[s.servicio] || s.servicio}</td>
           <td>${s.departamento ? `${s.municipio}, ${s.departamento}` : "—"}</td>
           <td><span class="badge ${s.urgencia}">${s.urgencia.charAt(0).toUpperCase() + s.urgencia.slice(1)}</span></td>
@@ -756,7 +766,7 @@
         </tr>`;
           })
           .join("");
-        c.innerHTML = `<table><thead><tr><th>Orden</th><th>Nombre</th><th>Correo</th><th>Servicio</th><th>Ubicación</th><th>Urgencia</th><th>Estado</th><th>Fecha</th><th></th></tr></thead><tbody>${trs}</tbody></table>`;
+        c.innerHTML = `<table><thead><tr><th>Orden</th><th>Nombre</th><th>Usuario / Correo</th><th>Servicio</th><th>Ubicación</th><th>Urgencia</th><th>Estado</th><th>Fecha</th><th></th></tr></thead><tbody>${trs}</tbody></table>`;
       }
 
       async function cambiarEstado(orden, estado) {
@@ -817,6 +827,11 @@
               <div class="modal-field"><label>Correo</label><span>${s.correo}</span></div>
               <div class="modal-field"><label>Teléfono</label><span>${s.telefono}</span></div>
               <div class="modal-field"><label>Fecha</label><span>${fecha}</span></div>
+              <div class="modal-field"><label>Usuario registrado</label><span>${
+                s.usuario_id
+                  ? `<span class="badge Completada">✓ Registrado</span>&nbsp;<span style="font-size:.82rem;color:var(--green-vivid)">@${s.usuario_registrado || ""}</span>`
+                  : '<span class="badge Cancelada">Anónimo</span>'
+              }</span></div>
             </div>
           </div>
           <div class="divider"></div>

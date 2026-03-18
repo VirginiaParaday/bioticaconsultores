@@ -267,9 +267,15 @@ app.get('/api/dashboard', async (req, res) => {
   try {
     const [statsRes, solRes] = await Promise.all([
       pool.query('SELECT * FROM dashboard_stats'),
-      pool.query(`SELECT id, orden, nombre, correo, telefono, servicio, subservicio,
-                         departamento, municipio, urgencia, estado, fecha_creacion
-                  FROM solicitudes ORDER BY fecha_creacion DESC LIMIT 100`)
+      pool.query(`SELECT s.id, s.orden, s.nombre, s.correo, s.telefono, s.servicio, s.subservicio,
+                         s.departamento, s.municipio, s.urgencia, s.estado, s.fecha_creacion,
+                         s.usuario_id,
+                         u.usuario   AS usuario_registrado,
+                         u.correo    AS correo_registrado,
+                         CASE WHEN u.id IS NOT NULL THEN true ELSE false END AS es_registrado
+                  FROM solicitudes s
+                  LEFT JOIN usuarios u ON s.usuario_id = u.id
+                  ORDER BY s.fecha_creacion DESC LIMIT 100`)
     ]);
     const s = statsRes.rows[0];
     return res.json({
@@ -287,7 +293,13 @@ app.get('/api/dashboard', async (req, res) => {
 // ============================================================
 app.get('/api/solicitud/:orden', async (req, res) => {
   try {
-    const { rows: sol } = await pool.query('SELECT * FROM solicitudes WHERE orden = $1', [req.params.orden]);
+    const { rows: sol } = await pool.query(
+      `SELECT s.*, u.usuario AS usuario_registrado, u.correo AS correo_registrado
+       FROM solicitudes s
+       LEFT JOIN usuarios u ON s.usuario_id = u.id
+       WHERE s.orden = $1`,
+      [req.params.orden]
+    );
     if (!sol.length) return res.status(404).json({ error: 'Solicitud no encontrada.' });
     const [campos, historial] = await Promise.all([
       pool.query('SELECT campo, valor FROM campos_dinamicos WHERE solicitud_id = $1', [sol[0].id]),
