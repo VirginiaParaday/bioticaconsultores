@@ -186,11 +186,12 @@ app.post('/api/usuarios/registro', async (req, res) => {
     const token = makeToken(rows[0].id, 'usuario');
     return res.json({ success: true, token, usuario: rows[0].usuario, correo: rows[0].correo, id: rows[0].id });
   } catch(err) {
+    console.error('❌ ERROR REGISTRO:', err.message, '| code:', err.code, '| detail:', err.detail);
     if (err.code === '23505') {
       const campo = err.constraint?.includes('correo') ? 'correo' : 'usuario';
       return res.status(409).json({ success: false, message: `Este ${campo} ya está registrado.` });
     }
-    return res.status(500).json({ success: false, message: 'Error interno.' });
+    return res.status(500).json({ success: false, message: 'Error interno.', debug: err.message });
   }
 });
 
