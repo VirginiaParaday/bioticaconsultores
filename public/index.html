@@ -39,9 +39,19 @@
           <li>
             <a href="#form-section" class="btn-nav">Solicitar Servicio</a>
           </li>
-          <li>
-            <a href="/login.html" class="btn-nav btn-nav-ghost"
+          <li id="nav-register">
+            <a href="/register.html" class="btn-nav btn-nav-outline"
+              >Regístrate</a
+            >
+          </li>
+          <li id="nav-login">
+            <a href="/login-usuario.html" class="btn-nav btn-nav-ghost"
               >Iniciar sesión</a
+            >
+          </li>
+          <li id="nav-cuenta" class="hidden">
+            <a href="/cuenta.html" class="btn-nav btn-nav-ghost"
+              >👤 Mi cuenta</a
             >
           </li>
         </ul>
@@ -3378,5 +3388,16 @@
     </footer>
 
     <script src="/js/main.js"></script>
+    <script>
+      // Detectar sesión de usuario y ajustar navbar
+      (function () {
+        const auth = sessionStorage.getItem("biotica_user_auth");
+        if (auth) {
+          document.getElementById("nav-register")?.classList.add("hidden");
+          document.getElementById("nav-login")?.classList.add("hidden");
+          document.getElementById("nav-cuenta")?.classList.remove("hidden");
+        }
+      })();
+    </script>
   </body>
 </html>

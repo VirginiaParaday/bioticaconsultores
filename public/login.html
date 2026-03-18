@@ -1,256 +1,418 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Iniciar sesión — Biótica Consultores</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --green-deep: #1a3a2a; --green-mid: #2d5e40; --green-vivid: #3a8c58;
-      --green-light: #6bbf7a; --green-pale: #d4ead9; --cream: #f5f0e8;
-      --text-dark: #1a2416; --text-soft: #6b7d66; --white: #ffffff;
-      --red-err: #c0392b; --shadow: 0 4px 24px rgba(26,58,42,0.12);
-      --shadow-lg: 0 12px 48px rgba(26,58,42,0.18);
-      --radius: 12px; --radius-lg: 20px;
-      --transition: 0.3s cubic-bezier(0.4,0,0.2,1);
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--green-deep);
-      min-height: 100vh;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 2rem;
-      position: relative; overflow: hidden;
-    }
-
-    /* Fondo animado */
-    body::before {
-      content: '';
-      position: absolute; inset: 0;
-      background: radial-gradient(ellipse at 20% 50%, rgba(58,140,88,0.15) 0%, transparent 60%),
-                  radial-gradient(ellipse at 80% 20%, rgba(107,191,122,0.1) 0%, transparent 50%);
-      pointer-events: none;
-    }
-
-    .login-wrap {
-      width: 100%; max-width: 420px;
-      position: relative; z-index: 1;
-    }
-
-    /* Logo */
-    .login-logo {
-      text-align: center; margin-bottom: 2rem;
-    }
-    .login-logo .leaf { font-size: 2.5rem; display: block; margin-bottom: 0.5rem; }
-    .login-logo h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.7rem; color: var(--white);
-      font-weight: 700;
-    }
-    .login-logo h1 em { color: var(--green-light); font-style: italic; }
-    .login-logo p { font-size: 0.82rem; color: rgba(255,255,255,0.5); margin-top: 0.4rem; letter-spacing: 0.12em; text-transform: uppercase; }
-
-    /* Card */
-    .login-card {
-      background: var(--white);
-      border-radius: var(--radius-lg);
-      padding: 2.5rem;
-      box-shadow: var(--shadow-lg);
-    }
-    .login-card h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.4rem; color: var(--green-deep);
-      margin-bottom: 0.4rem;
-    }
-    .login-card p {
-      font-size: 0.85rem; color: var(--text-soft);
-      margin-bottom: 1.75rem;
-    }
-
-    /* Form */
-    .form-group { margin-bottom: 1.25rem; }
-    label {
-      display: block; font-size: 0.82rem; font-weight: 600;
-      color: var(--text-dark); margin-bottom: 0.4rem;
-    }
-    input {
-      width: 100%; padding: 0.75rem 1rem;
-      border: 1.5px solid #dde8db; border-radius: var(--radius);
-      font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
-      color: var(--text-dark); outline: none;
-      transition: border-color var(--transition), box-shadow var(--transition);
-    }
-    input:focus { border-color: var(--green-vivid); box-shadow: 0 0 0 3px rgba(58,140,88,0.12); }
-    input.invalid { border-color: var(--red-err); }
-
-    .field-error { display: block; font-size: 0.78rem; color: var(--red-err); margin-top: 0.3rem; min-height: 1rem; }
-
-    /* Password wrapper */
-    .pass-wrap { position: relative; }
-    .pass-wrap input { padding-right: 2.8rem; }
-    .pass-toggle {
-      position: absolute; right: 0.9rem; top: 50%; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer;
-      color: var(--text-soft); font-size: 1rem; padding: 0; line-height: 1;
-      transition: color var(--transition);
-    }
-    .pass-toggle:hover { color: var(--green-vivid); }
-
-    /* Alert */
-    .alert {
-      padding: 0.75rem 1rem; border-radius: var(--radius);
-      font-size: 0.85rem; margin-bottom: 1.25rem;
-      display: none;
-    }
-    .alert.error { background: #fdf0ee; color: var(--red-err); border: 1px solid #f5c6c0; display: block; }
-    .alert.success { background: #eef7f1; color: var(--green-mid); border: 1px solid var(--green-pale); display: block; }
-
-    /* Button */
-    .btn-login {
-      width: 100%; padding: 0.85rem;
-      background: var(--green-vivid); color: var(--white);
-      border: none; border-radius: 50px;
-      font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 600;
-      cursor: pointer; transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
-      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-      margin-top: 0.5rem;
-    }
-    .btn-login:hover:not(:disabled) { background: var(--green-mid); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(58,140,88,0.4); }
-    .btn-login:disabled { opacity: 0.7; cursor: not-allowed; }
-
-    .loader {
-      width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white; border-radius: 50%;
-      animation: spin 0.7s linear infinite; display: none;
-    }
-    .btn-login.loading .loader { display: block; }
-    .btn-login.loading .btn-label { display: none; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Back link */
-    .back-link {
-      text-align: center; margin-top: 1.5rem;
-    }
-    .back-link a {
-      color: rgba(255,255,255,0.6); text-decoration: none;
-      font-size: 0.82rem; transition: color var(--transition);
-    }
-    .back-link a:hover { color: var(--white); }
-  </style>
-</head>
-<body>
-  <div class="login-wrap">
-
-    <div class="login-logo">
-      <span class="leaf">🌿</span>
-      <h1>Biótica<em>Consultores</em></h1>
-      <p>Panel de administración</p>
-    </div>
-
-    <div class="login-card">
-      <h2>Iniciar sesión</h2>
-      <p>Accede al panel de gestión de solicitudes.</p>
-
-      <div class="alert" id="login-alert"></div>
-
-      <form id="loginForm" novalidate>
-        <div class="form-group">
-          <label for="usuario">Usuario</label>
-          <input type="text" id="usuario" name="usuario" placeholder="Ingresa tu usuario" autocomplete="username" />
-          <span class="field-error" id="err-usuario"></span>
-        </div>
-        <div class="form-group">
-          <label for="password">Contraseña</label>
-          <div class="pass-wrap">
-            <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" />
-            <button type="button" class="pass-toggle" id="pass-toggle" aria-label="Mostrar contraseña">👁</button>
-          </div>
-          <span class="field-error" id="err-password"></span>
-        </div>
-        <button type="submit" class="btn-login" id="btn-login">
-          <span class="btn-label">Ingresar al panel</span>
-          <span class="loader"></span>
-        </button>
-      </form>
-    </div>
-
-    <div class="back-link">
-      <a href="/">← Volver al sitio principal</a>
-    </div>
-
-  </div>
-
-  <script>
-    // Mostrar/ocultar contraseña
-    const passInput  = document.getElementById('password');
-    const passToggle = document.getElementById('pass-toggle');
-    passToggle.addEventListener('click', () => {
-      const show = passInput.type === 'password';
-      passInput.type = show ? 'text' : 'password';
-      passToggle.textContent = show ? '🙈' : '👁';
-    });
-
-    // Login
-    const form      = document.getElementById('loginForm');
-    const alertBox  = document.getElementById('login-alert');
-    const btnLogin  = document.getElementById('btn-login');
-
-    function showAlert(msg, type) {
-      alertBox.textContent = (type === 'error' ? '⚠️ ' : '✅ ') + msg;
-      alertBox.className = `alert ${type}`;
-    }
-    function clearAlert() { alertBox.className = 'alert'; }
-    function setError(id, msg) {
-      document.getElementById('err-' + id).textContent = msg;
-      document.getElementById(id)?.classList.toggle('invalid', !!msg);
-    }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      clearAlert();
-      setError('usuario', ''); setError('password', '');
-
-      const usuario  = document.getElementById('usuario').value.trim();
-      const password = document.getElementById('password').value;
-
-      if (!usuario)  { setError('usuario',  'El usuario es obligatorio.');   return; }
-      if (!password) { setError('password', 'La contraseña es obligatoria.'); return; }
-
-      btnLogin.classList.add('loading');
-      btnLogin.disabled = true;
-
-      try {
-        const res  = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ usuario, password })
-        });
-        const data = await res.json();
-
-        if (data.success) {
-          showAlert('Acceso correcto. Redirigiendo...', 'success');
-          sessionStorage.setItem('biotica_auth', data.token);
-          sessionStorage.setItem('biotica_user', data.usuario);
-          setTimeout(() => window.location.href = '/dashboard.html', 800);
-        } else {
-          showAlert(data.message || 'Usuario o contraseña incorrectos.', 'error');
-        }
-      } catch (err) {
-        showAlert('Error de conexión. Intenta nuevamente.', 'error');
-      } finally {
-        btnLogin.classList.remove('loading');
-        btnLogin.disabled = false;
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Iniciar sesión — Biótica Consultores</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --green-deep: #1a3a2a;
+        --green-mid: #2d5e40;
+        --green-vivid: #3a8c58;
+        --green-light: #6bbf7a;
+        --green-pale: #d4ead9;
+        --cream: #f5f0e8;
+        --text-dark: #1a2416;
+        --text-soft: #6b7d66;
+        --white: #ffffff;
+        --red-err: #c0392b;
+        --shadow: 0 4px 24px rgba(26, 58, 42, 0.12);
+        --shadow-lg: 0 12px 48px rgba(26, 58, 42, 0.18);
+        --radius: 12px;
+        --radius-lg: 20px;
+        --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       }
-    });
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: var(--green-deep);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+      }
 
-    // Si ya está autenticado, redirigir directo
-    if (sessionStorage.getItem('biotica_auth')) {
-      window.location.href = '/dashboard.html';
-    }
-  </script>
-</body>
+      /* Fondo animado */
+      body::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(
+            ellipse at 20% 50%,
+            rgba(58, 140, 88, 0.15) 0%,
+            transparent 60%
+          ),
+          radial-gradient(
+            ellipse at 80% 20%,
+            rgba(107, 191, 122, 0.1) 0%,
+            transparent 50%
+          );
+        pointer-events: none;
+      }
+
+      .login-wrap {
+        width: 100%;
+        max-width: 420px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* Logo */
+      .login-logo {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+      .login-logo .leaf {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 0.5rem;
+      }
+      .login-logo h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.7rem;
+        color: var(--white);
+        font-weight: 700;
+      }
+      .login-logo h1 em {
+        color: var(--green-light);
+        font-style: italic;
+      }
+      .login-logo p {
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-top: 0.4rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      /* Card */
+      .login-card {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem;
+        box-shadow: var(--shadow-lg);
+      }
+      .login-card h2 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.4rem;
+        color: var(--green-deep);
+        margin-bottom: 0.4rem;
+      }
+      .login-card p {
+        font-size: 0.85rem;
+        color: var(--text-soft);
+        margin-bottom: 1.75rem;
+      }
+
+      /* Form */
+      .form-group {
+        margin-bottom: 1.25rem;
+      }
+      label {
+        display: block;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 0.4rem;
+      }
+      input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 1.5px solid #dde8db;
+        border-radius: var(--radius);
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        outline: none;
+        transition:
+          border-color var(--transition),
+          box-shadow var(--transition);
+      }
+      input:focus {
+        border-color: var(--green-vivid);
+        box-shadow: 0 0 0 3px rgba(58, 140, 88, 0.12);
+      }
+      input.invalid {
+        border-color: var(--red-err);
+      }
+
+      .field-error {
+        display: block;
+        font-size: 0.78rem;
+        color: var(--red-err);
+        margin-top: 0.3rem;
+        min-height: 1rem;
+      }
+
+      /* Password wrapper */
+      .pass-wrap {
+        position: relative;
+      }
+      .pass-wrap input {
+        padding-right: 2.8rem;
+      }
+      .pass-toggle {
+        position: absolute;
+        right: 0.9rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: var(--text-soft);
+        font-size: 1rem;
+        padding: 0;
+        line-height: 1;
+        transition: color var(--transition);
+      }
+      .pass-toggle:hover {
+        color: var(--green-vivid);
+      }
+
+      /* Alert */
+      .alert {
+        padding: 0.75rem 1rem;
+        border-radius: var(--radius);
+        font-size: 0.85rem;
+        margin-bottom: 1.25rem;
+        display: none;
+      }
+      .alert.error {
+        background: #fdf0ee;
+        color: var(--red-err);
+        border: 1px solid #f5c6c0;
+        display: block;
+      }
+      .alert.success {
+        background: #eef7f1;
+        color: var(--green-mid);
+        border: 1px solid var(--green-pale);
+        display: block;
+      }
+
+      /* Button */
+      .btn-login {
+        width: 100%;
+        padding: 0.85rem;
+        background: var(--green-vivid);
+        color: var(--white);
+        border: none;
+        border-radius: 50px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition:
+          background var(--transition),
+          transform var(--transition),
+          box-shadow var(--transition);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+      }
+      .btn-login:hover:not(:disabled) {
+        background: var(--green-mid);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(58, 140, 88, 0.4);
+      }
+      .btn-login:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+
+      .loader {
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 0.7s linear infinite;
+        display: none;
+      }
+      .btn-login.loading .loader {
+        display: block;
+      }
+      .btn-login.loading .btn-label {
+        display: none;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Back link */
+      .back-link {
+        text-align: center;
+        margin-top: 1.5rem;
+      }
+      .back-link a {
+        color: rgba(255, 255, 255, 0.6);
+        text-decoration: none;
+        font-size: 0.82rem;
+        transition: color var(--transition);
+      }
+      .back-link a:hover {
+        color: var(--white);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-wrap">
+      <div class="login-logo">
+        <span class="leaf">🌿</span>
+        <h1>Biótica<em>Consultores</em></h1>
+        <p>Panel de administración</p>
+      </div>
+
+      <div class="login-card">
+        <h2>Iniciar sesión</h2>
+        <p>Accede al panel de gestión de solicitudes.</p>
+
+        <div class="alert" id="login-alert"></div>
+
+        <form id="loginForm" novalidate>
+          <div class="form-group">
+            <label for="usuario">Usuario</label>
+            <input
+              type="text"
+              id="usuario"
+              name="usuario"
+              placeholder="Ingresa tu usuario"
+              autocomplete="username"
+            />
+            <span class="field-error" id="err-usuario"></span>
+          </div>
+          <div class="form-group">
+            <label for="password">Contraseña</label>
+            <div class="pass-wrap">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Ingresa tu contraseña"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                class="pass-toggle"
+                id="pass-toggle"
+                aria-label="Mostrar contraseña"
+              >
+                👁
+              </button>
+            </div>
+            <span class="field-error" id="err-password"></span>
+          </div>
+          <button type="submit" class="btn-login" id="btn-login">
+            <span class="btn-label">Ingresar al panel</span>
+            <span class="loader"></span>
+          </button>
+        </form>
+      </div>
+
+      <div class="back-link">
+        <a href="/">← Volver al sitio principal</a>
+      </div>
+    </div>
+
+    <script>
+      // Mostrar/ocultar contraseña
+      const passInput = document.getElementById("password");
+      const passToggle = document.getElementById("pass-toggle");
+      passToggle.addEventListener("click", () => {
+        const show = passInput.type === "password";
+        passInput.type = show ? "text" : "password";
+        passToggle.textContent = show ? "🙈" : "👁";
+      });
+
+      // Login
+      const form = document.getElementById("loginForm");
+      const alertBox = document.getElementById("login-alert");
+      const btnLogin = document.getElementById("btn-login");
+
+      function showAlert(msg, type) {
+        alertBox.textContent = (type === "error" ? "⚠️ " : "✅ ") + msg;
+        alertBox.className = `alert ${type}`;
+      }
+      function clearAlert() {
+        alertBox.className = "alert";
+      }
+      function setError(id, msg) {
+        document.getElementById("err-" + id).textContent = msg;
+        document.getElementById(id)?.classList.toggle("invalid", !!msg);
+      }
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        clearAlert();
+        setError("usuario", "");
+        setError("password", "");
+
+        const usuario = document.getElementById("usuario").value.trim();
+        const password = document.getElementById("password").value;
+
+        if (!usuario) {
+          setError("usuario", "El usuario es obligatorio.");
+          return;
+        }
+        if (!password) {
+          setError("password", "La contraseña es obligatoria.");
+          return;
+        }
+
+        btnLogin.classList.add("loading");
+        btnLogin.disabled = true;
+
+        try {
+          const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ usuario, password }),
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            showAlert("Acceso correcto. Redirigiendo...", "success");
+            sessionStorage.setItem("biotica_auth", data.token);
+            sessionStorage.setItem("biotica_user", data.usuario);
+            setTimeout(() => (window.location.href = "/dashboard.html"), 800);
+          } else {
+            showAlert(
+              data.message || "Usuario o contraseña incorrectos.",
+              "error",
+            );
+          }
+        } catch (err) {
+          showAlert("Error de conexión. Intenta nuevamente.", "error");
+        } finally {
+          btnLogin.classList.remove("loading");
+          btnLogin.disabled = false;
+        }
+      });
+
+      // Si ya está autenticado, redirigir directo
+      if (sessionStorage.getItem("biotica_auth")) {
+        window.location.href = "/dashboard.html";
+      }
+    </script>
+  </body>
 </html>

@@ -1,33 +1,26 @@
 require('dotenv').config();
-const express = require('express');
-const multer  = require('multer');
-const { v4: uuidv4 } = require('uuid');
-const { Pool }       = require('pg');
-const path  = require('path');
-const fs    = require('fs');
+const express  = require('express');
+const multer   = require('multer');
+const crypto   = require('crypto');
+const { Pool } = require('pg');
+const path     = require('path');
+const fs       = require('fs');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
 
 // ============================================================
-// CONEXIÓN POSTGRESQL
+// POSTGRESQL
 // ============================================================
 const pool = new Pool(
   process.env.DATABASE_URL
     ? { connectionString: process.env.DATABASE_URL, ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false }
-    : {
-        host:     process.env.DB_HOST     || 'localhost',
-        port:     process.env.DB_PORT     || 5432,
-        database: process.env.DB_NAME     || 'biotica',
-        user:     process.env.DB_USER     || 'biotica_user',
-        password: process.env.DB_PASSWORD || '',
-        ssl:      process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-      }
+    : { host: process.env.DB_HOST||'localhost', port: process.env.DB_PORT||5432,
+        database: process.env.DB_NAME||'biotica', user: process.env.DB_USER||'biotica_user',
+        password: process.env.DB_PASSWORD||'', ssl: false }
 );
-
-pool.connect()
-  .then(client => { client.release(); console.log('✅ Conectado a PostgreSQL'); })
-  .catch(err  => console.error('❌ Error conectando a PostgreSQL:', err.message));
+pool.connect().then(c=>{ c.release(); console.log('✅ Conectado a PostgreSQL'); })
+              .catch(e=> console.error('❌ PostgreSQL:', e.message));
 
 // ============================================================
 // MULTER
@@ -51,13 +44,29 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 // ============================================================
+// HELPERS — Crypto (sin bcrypt, solo SHA-256 + salt)
+// ============================================================
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.createHmac('sha256', salt).update(password).digest('hex');
+  return `${salt}:${hash}`;
+}
+function verifyPassword(password, stored) {
+  const [salt, hash] = stored.split(':');
+  const attempt = crypto.createHmac('sha256', salt).update(password).digest('hex');
+  return attempt === hash;
+}
+function makeToken(id, tipo) {
+  return Buffer.from(`${tipo}:${id}:${Date.now()}`).toString('base64');
+}
+
+// ============================================================
 // CONSTANTES
 // ============================================================
 const SERVICIOS_VALIDOS = [
   'gestion-ambiental','ordenamiento-planificacion','biodiversidad-restauracion',
   'manejo-forestal','ecoturismo','innovacion-sostenibilidad','suministros',
 ];
-
 const PREFIJOS_SUBSERVICIO = {
   'ca-eia':'eia_','ca-dia':'dia_','ca-pma':'pma_','ca-daa':'daa_',
   'ca-licencias':'lic_','ca-auditoria':'aud_',
@@ -78,7 +87,7 @@ const PREFIJOS_SUBSERVICIO = {
 };
 
 // ============================================================
-// HELPERS
+// HELPERS — Solicitudes
 // ============================================================
 async function generarOrden(client) {
   const year = new Date().getFullYear();
@@ -87,7 +96,6 @@ async function generarOrden(client) {
   );
   return `BIO-${year}-${String(Number(rows[0].total) + 1).padStart(3, '0')}`;
 }
-
 function extraerCamposDinamicos(body, subservicio) {
   if (!subservicio || !PREFIJOS_SUBSERVICIO[subservicio]) return {};
   const prefix = PREFIJOS_SUBSERVICIO[subservicio];
@@ -95,24 +103,112 @@ function extraerCamposDinamicos(body, subservicio) {
 }
 
 // ============================================================
-// POST /api/auth/login
+// AUTH — Admin
 // ============================================================
-const USUARIOS = {
-  'Biotica': { password: 'Biotica/1973', rol: 'admin' }
-};
+const ADMINS = { 'Biotica': { password: 'Biotica/1973', rol: 'admin' } };
 
 app.post('/api/auth/login', (req, res) => {
   const { usuario, password } = req.body;
   if (!usuario || !password)
-    return res.status(400).json({ success: false, message: 'Usuario y contraseña son requeridos.' });
-
-  const user = USUARIOS[usuario];
+    return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos.' });
+  const user = ADMINS[usuario];
   if (!user || user.password !== password)
     return res.status(401).json({ success: false, message: 'Usuario o contraseña incorrectos.' });
+  const token = makeToken(usuario, 'admin');
+  return res.json({ success: true, token, usuario, rol: 'admin' });
+});
 
-  // Token simple basado en base64 (para producción usar JWT)
-  const token = Buffer.from(`${usuario}:${Date.now()}`).toString('base64');
-  return res.json({ success: true, token, usuario, rol: user.rol });
+// ============================================================
+// AUTH — Usuarios (registro / login / perfil / eliminar)
+// ============================================================
+
+// POST /api/usuarios/registro
+app.post('/api/usuarios/registro', async (req, res) => {
+  const { usuario, correo, password } = req.body;
+  if (!usuario || !correo || !password)
+    return res.status(400).json({ success: false, message: 'Todos los campos son obligatorios.' });
+  if (usuario.length < 3)
+    return res.status(400).json({ success: false, message: 'El usuario debe tener al menos 3 caracteres.' });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo))
+    return res.status(400).json({ success: false, message: 'Correo no válido.' });
+  if (password.length < 6)
+    return res.status(400).json({ success: false, message: 'La contraseña debe tener al menos 6 caracteres.' });
+
+  try {
+    const hash = hashPassword(password);
+    const { rows } = await pool.query(
+      `INSERT INTO usuarios (usuario, correo, password_hash) VALUES ($1, $2, $3) RETURNING id, usuario, correo, fecha_creacion`,
+      [usuario, correo, hash]
+    );
+    const token = makeToken(rows[0].id, 'usuario');
+    return res.json({ success: true, token, usuario: rows[0].usuario, correo: rows[0].correo, id: rows[0].id });
+  } catch (err) {
+    if (err.code === '23505') {
+      const campo = err.constraint?.includes('correo') ? 'correo' : 'usuario';
+      return res.status(409).json({ success: false, message: `Este ${campo} ya está registrado.` });
+    }
+    console.error('Error registro:', err);
+    return res.status(500).json({ success: false, message: 'Error interno.' });
+  }
+});
+
+// POST /api/usuarios/login
+app.post('/api/usuarios/login', async (req, res) => {
+  const { usuario, password } = req.body;
+  if (!usuario || !password)
+    return res.status(400).json({ success: false, message: 'Usuario y contraseña requeridos.' });
+  try {
+    const { rows } = await pool.query(
+      `SELECT * FROM usuarios WHERE (usuario = $1 OR correo = $1) AND activo = true`, [usuario]
+    );
+    if (!rows.length || !verifyPassword(password, rows[0].password_hash))
+      return res.status(401).json({ success: false, message: 'Usuario o contraseña incorrectos.' });
+    const token = makeToken(rows[0].id, 'usuario');
+    return res.json({ success: true, token, usuario: rows[0].usuario, correo: rows[0].correo, id: rows[0].id });
+  } catch (err) {
+    console.error('Error login usuario:', err);
+    return res.status(500).json({ success: false, message: 'Error interno.' });
+  }
+});
+
+// GET /api/usuarios/:id/perfil
+app.get('/api/usuarios/:id/perfil', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, usuario, correo, fecha_creacion FROM usuarios WHERE id = $1 AND activo = true`, [req.params.id]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Usuario no encontrado.' });
+    return res.json(rows[0]);
+  } catch (err) {
+    return res.status(500).json({ error: 'Error interno.' });
+  }
+});
+
+// DELETE /api/usuarios/:id
+app.delete('/api/usuarios/:id', async (req, res) => {
+  try {
+    await pool.query(`UPDATE usuarios SET activo = false WHERE id = $1`, [req.params.id]);
+    return res.json({ success: true, message: 'Cuenta eliminada correctamente.' });
+  } catch (err) {
+    console.error('Error eliminando usuario:', err);
+    return res.status(500).json({ error: 'Error interno.' });
+  }
+});
+
+// GET /api/usuarios/:id/ordenes — Órdenes del usuario
+app.get('/api/usuarios/:id/ordenes', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT id, orden, servicio, subservicio, departamento, municipio,
+              urgencia, estado, descripcion, fecha_creacion
+       FROM solicitudes WHERE usuario_id = $1 ORDER BY fecha_creacion DESC`,
+      [req.params.id]
+    );
+    return res.json({ ordenes: rows });
+  } catch (err) {
+    console.error('Error obteniendo órdenes usuario:', err);
+    return res.status(500).json({ error: 'Error interno.' });
+  }
 });
 
 // ============================================================
@@ -120,14 +216,12 @@ app.post('/api/auth/login', (req, res) => {
 // ============================================================
 app.post('/api/solicitud', upload.single('documento'), async (req, res) => {
   const { nombre, correo, telefono, servicio, subservicio,
-          departamento, municipio, descripcion, urgencia } = req.body;
+          departamento, municipio, descripcion, urgencia, usuario_id } = req.body;
 
   if (!nombre || !correo || !telefono || !servicio || !descripcion || !urgencia)
     return res.status(400).json({ success: false, message: 'Todos los campos obligatorios deben completarse.' });
-
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo))
     return res.status(400).json({ success: false, message: 'Por favor ingresa un correo válido.' });
-
   if (!SERVICIOS_VALIDOS.includes(servicio))
     return res.status(422).json({ success: false, outOfPortfolio: true, message: 'Este servicio no está en nuestro portafolio.' });
 
@@ -135,35 +229,32 @@ app.post('/api/solicitud', upload.single('documento'), async (req, res) => {
   try {
     await client.query('BEGIN');
     const orden = await generarOrden(client);
-
     const { rows } = await client.query(
       `INSERT INTO solicitudes
         (orden, nombre, correo, telefono, departamento, municipio,
-         servicio, subservicio, descripcion, urgencia, archivo, estado)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'Recibida') RETURNING id`,
+         servicio, subservicio, descripcion, urgencia, archivo, estado, usuario_id)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'Recibida',$12) RETURNING id`,
       [orden, nombre, correo, telefono,
-       departamento || null, municipio || null,
-       servicio, subservicio || null, descripcion, urgencia,
-       req.file ? req.file.filename : null]
+       departamento||null, municipio||null,
+       servicio, subservicio||null, descripcion, urgencia,
+       req.file ? req.file.filename : null,
+       usuario_id||null]
     );
     const solicitudId = rows[0].id;
-
     const campos = extraerCamposDinamicos(req.body, subservicio);
     if (Object.keys(campos).length > 0) {
       const entries = Object.entries(campos);
       const vals = entries.flatMap(([campo, valor]) => [solicitudId, campo, valor]);
-      const ph   = entries.map((_, i) => `($${i*3+1},$${i*3+2},$${i*3+3})`).join(',');
+      const ph   = entries.map((_,i) => `($${i*3+1},$${i*3+2},$${i*3+3})`).join(',');
       await client.query(`INSERT INTO campos_dinamicos (solicitud_id, campo, valor) VALUES ${ph}`, vals);
     }
-
     await client.query('COMMIT');
     return res.json({ success: true, orden,
       message: `Tu orden ha sido generada: ${orden}. Revisa tu correo para el seguimiento.` });
-
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('Error guardando solicitud:', err);
-    return res.status(500).json({ success: false, message: 'Error interno del servidor. Intenta nuevamente.' });
+    console.error('Error guardando solicitud:', err.message, err.stack);
+    return res.status(500).json({ success: false, message: 'Error interno del servidor.' });
   } finally {
     client.release();
   }
@@ -182,19 +273,17 @@ app.get('/api/dashboard', async (req, res) => {
     ]);
     const s = statsRes.rows[0];
     return res.json({
-      total: Number(s.total), alta: Number(s.alta),
-      media: Number(s.media), baja: Number(s.baja),
-      recibidas: Number(s.recibidas), en_proceso: Number(s.en_proceso),
-      completadas: Number(s.completadas), solicitudes: solRes.rows,
+      total: Number(s.total), alta: Number(s.alta), media: Number(s.media), baja: Number(s.baja),
+      recibidas: Number(s.recibidas), en_proceso: Number(s.en_proceso), completadas: Number(s.completadas),
+      solicitudes: solRes.rows,
     });
   } catch (err) {
-    console.error('Error en dashboard:', err);
     return res.status(500).json({ error: 'Error obteniendo datos.' });
   }
 });
 
 // ============================================================
-// GET /api/solicitud/:orden — Detalle completo
+// GET /api/solicitud/:orden
 // ============================================================
 app.get('/api/solicitud/:orden', async (req, res) => {
   try {
@@ -206,7 +295,6 @@ app.get('/api/solicitud/:orden', async (req, res) => {
     ]);
     return res.json({ ...sol[0], campos_dinamicos: campos.rows, historial: historial.rows });
   } catch (err) {
-    console.error('Error obteniendo solicitud:', err);
     return res.status(500).json({ error: 'Error interno.' });
   }
 });
@@ -233,7 +321,6 @@ app.patch('/api/solicitud/:orden/estado', async (req, res) => {
     }
     return res.json({ success: true, ...rows[0] });
   } catch (err) {
-    console.error('Error actualizando estado:', err);
     return res.status(500).json({ error: 'Error interno.' });
   }
 });

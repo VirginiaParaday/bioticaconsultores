@@ -160,6 +160,16 @@ em {
   border-color: white !important;
 }
 
+.btn-nav-outline {
+  background: transparent !important;
+  border: 1.5px solid var(--green-light) !important;
+  color: var(--green-light) !important;
+}
+
+.btn-nav-outline:hover {
+  background: rgba(107, 191, 122, 0.15) !important;
+}
+
 .dropdown {
   position: relative;
 }

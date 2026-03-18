@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Iniciar sesión — Biótica Consultores</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root{--green-deep:#1a3a2a;--green-mid:#2d5e40;--green-vivid:#3a8c58;--green-light:#6bbf7a;--green-pale:#d4ead9;--text-dark:#1a2416;--text-soft:#6b7d66;--white:#ffffff;--red-err:#c0392b;--shadow-lg:0 12px 48px rgba(26,58,42,0.18);--radius:12px;--radius-lg:20px;--transition:0.3s cubic-bezier(0.4,0,0.2,1);}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'DM Sans',sans-serif;background:var(--green-deep);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem;position:relative;overflow:hidden;}
+    body::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(58,140,88,.15) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(107,191,122,.1) 0%,transparent 50%);pointer-events:none;}
+    .wrap{width:100%;max-width:420px;position:relative;z-index:1;}
+    .logo{text-align:center;margin-bottom:2rem;}
+    .logo .leaf{font-size:2.5rem;display:block;margin-bottom:.5rem;}
+    .logo h1{font-family:'Playfair Display',serif;font-size:1.7rem;color:var(--white);font-weight:700;}
+    .logo h1 em{color:var(--green-light);font-style:italic;}
+    .logo p{font-size:.82rem;color:rgba(255,255,255,.5);margin-top:.4rem;letter-spacing:.12em;text-transform:uppercase;}
+    .card{background:var(--white);border-radius:var(--radius-lg);padding:2.5rem;box-shadow:var(--shadow-lg);}
+    .card h2{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--green-deep);margin-bottom:.3rem;}
+    .card p{font-size:.85rem;color:var(--text-soft);margin-bottom:1.75rem;}
+    .form-group{margin-bottom:1.2rem;}
+    label{display:block;font-size:.82rem;font-weight:600;color:var(--text-dark);margin-bottom:.4rem;}
+    input{width:100%;padding:.75rem 1rem;border:1.5px solid #dde8db;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--text-dark);outline:none;transition:border-color var(--transition),box-shadow var(--transition);}
+    input:focus{border-color:var(--green-vivid);box-shadow:0 0 0 3px rgba(58,140,88,.12);}
+    input.invalid{border-color:var(--red-err);}
+    .field-error{display:block;font-size:.78rem;color:var(--red-err);margin-top:.3rem;min-height:1rem;}
+    .pass-wrap{position:relative;}
+    .pass-wrap input{padding-right:2.8rem;}
+    .pass-toggle{position:absolute;right:.9rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:1rem;transition:color var(--transition);}
+    .pass-toggle:hover{color:var(--green-vivid);}
+    .alert{padding:.75rem 1rem;border-radius:var(--radius);font-size:.85rem;margin-bottom:1.25rem;display:none;}
+    .alert.error{background:#fdf0ee;color:var(--red-err);border:1px solid #f5c6c0;display:block;}
+    .alert.success{background:#eef7f1;color:var(--green-mid);border:1px solid var(--green-pale);display:block;}
+    .btn{width:100%;padding:.85rem;background:var(--green-vivid);color:var(--white);border:none;border-radius:50px;font-family:'DM Sans',sans-serif;font-size:.95rem;font-weight:600;cursor:pointer;transition:background var(--transition),transform var(--transition),box-shadow var(--transition);display:flex;align-items:center;justify-content:center;gap:.5rem;margin-top:.5rem;}
+    .btn:hover:not(:disabled){background:var(--green-mid);transform:translateY(-2px);box-shadow:0 6px 20px rgba(58,140,88,.4);}
+    .btn:disabled{opacity:.7;cursor:not-allowed;}
+    .loader{width:16px;height:16px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;display:none;}
+    .btn.loading .loader{display:block;}
+    .btn.loading .btn-label{display:none;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .divider{text-align:center;margin:1.25rem 0;font-size:.82rem;color:var(--text-soft);position:relative;}
+    .divider::before,.divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:#e8ede6;}
+    .divider::before{left:0;}.divider::after{right:0;}
+    .link-row{text-align:center;font-size:.83rem;color:var(--text-soft);}
+    .link-row a{color:var(--green-vivid);font-weight:600;text-decoration:none;}
+    .link-row a:hover{text-decoration:underline;}
+    .back{text-align:center;margin-top:1.5rem;}
+    .back a{color:rgba(255,255,255,.6);text-decoration:none;font-size:.82rem;transition:color var(--transition);}
+    .back a:hover{color:var(--white);}
+    .admin-link{text-align:center;margin-top:.75rem;}
+    .admin-link a{color:rgba(255,255,255,.35);text-decoration:none;font-size:.75rem;}
+    .admin-link a:hover{color:rgba(255,255,255,.6);}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo">
+      <span class="leaf">🌿</span>
+      <h1>Biótica<em>Consultores</em></h1>
+      <p>Accede a tu cuenta</p>
+    </div>
+    <div class="card">
+      <h2>Iniciar sesión</h2>
+      <p>Bienvenido de nuevo. Ingresa tus datos para continuar.</p>
+      <div class="alert" id="alert"></div>
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="usuario">Usuario o correo electrónico</label>
+          <input type="text" id="usuario" name="usuario" placeholder="Tu usuario o correo" autocomplete="username"/>
+          <span class="field-error" id="err-usuario"></span>
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <div class="pass-wrap">
+            <input type="password" id="password" name="password" placeholder="Tu contraseña" autocomplete="current-password"/>
+            <button type="button" class="pass-toggle" id="toggle">👁</button>
+          </div>
+          <span class="field-error" id="err-password"></span>
+        </div>
+        <button type="submit" class="btn" id="btn-login">
+          <span class="btn-label">Ingresar</span>
+          <span class="loader"></span>
+        </button>
+      </form>
+      <div class="divider">¿No tienes cuenta?</div>
+      <div class="link-row"><a href="/register.html">Regístrate gratis aquí</a></div>
+    </div>
+    <div class="back"><a href="/">← Volver al sitio principal</a></div>
+    <div class="admin-link"><a href="/login.html">Acceso administrador</a></div>
+  </div>
+  <script>
+    if (sessionStorage.getItem('biotica_user_auth')) window.location.href = '/cuenta.html';
+
+    document.getElementById('toggle').addEventListener('click', () => {
+      const i = document.getElementById('password');
+      i.type = i.type==='password'?'text':'password';
+      document.getElementById('toggle').textContent = i.type==='password'?'👁':'🙈';
+    });
+
+    function setErr(id, msg) {
+      document.getElementById('err-'+id).textContent = msg;
+      document.getElementById(id)?.classList.toggle('invalid', !!msg);
+    }
+    function showAlert(msg, type) {
+      const el = document.getElementById('alert');
+      el.textContent = (type==='error'?'⚠️ ':'✅ ') + msg;
+      el.className = 'alert ' + type;
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setErr('usuario',''); setErr('password','');
+      const usuario  = document.getElementById('usuario').value.trim();
+      const password = document.getElementById('password').value;
+      if (!usuario)  { setErr('usuario','Campo obligatorio.'); return; }
+      if (!password) { setErr('password','Campo obligatorio.'); return; }
+
+      const btn = document.getElementById('btn-login');
+      btn.classList.add('loading'); btn.disabled=true;
+      try {
+        const res  = await fetch('/api/usuarios/login', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ usuario, password })
+        });
+        const data = await res.json();
+        if (data.success) {
+          sessionStorage.setItem('biotica_user_auth',  data.token);
+          sessionStorage.setItem('biotica_user_id',    data.id);
+          sessionStorage.setItem('biotica_user_name',  data.usuario);
+          sessionStorage.setItem('biotica_user_email', data.correo);
+          showAlert('¡Bienvenido! Redirigiendo...', 'success');
+          setTimeout(() => window.location.href = '/cuenta.html', 800);
+        } else {
+          showAlert(data.message || 'Credenciales incorrectas.', 'error');
+        }
+      } catch(err) {
+        showAlert('Error de conexión. Intenta nuevamente.', 'error');
+      } finally {
+        btn.classList.remove('loading'); btn.disabled=false;
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,1005 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi Cuenta — Biótica Consultores</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!-- Reutiliza el CSS del sitio -->
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      /* ── Layout cuenta ── */
+      body {
+        background: #f0f4f1;
+      }
+      .cuenta-topbar {
+        background: var(--green-deep);
+        height: 64px;
+        padding: 0 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
+      }
+      .cuenta-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+      .cuenta-topbar-left .leaf {
+        font-size: 1.4rem;
+      }
+      .cuenta-topbar-left h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.15rem;
+        color: var(--white);
+        font-weight: 700;
+      }
+      .cuenta-topbar-left h1 em {
+        color: var(--green-light);
+        font-style: italic;
+      }
+      .cuenta-topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+      }
+      .user-chip {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50px;
+        padding: 0.35rem 0.9rem;
+      }
+      .user-chip .ava {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: var(--green-vivid);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: white;
+      }
+      .user-chip span {
+        font-size: 0.83rem;
+        color: var(--white);
+      }
+      .btn-sm {
+        padding: 0.35rem 0.9rem;
+        border-radius: 50px;
+        font-size: 0.8rem;
+        font-family: "DM Sans", sans-serif;
+        cursor: pointer;
+        transition: all var(--transition);
+        border: 1px solid;
+      }
+      .btn-sm-ghost {
+        background: transparent;
+        border-color: rgba(255, 255, 255, 0.3);
+        color: rgba(255, 255, 255, 0.8);
+      }
+      .btn-sm-ghost:hover {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+      .btn-sm-danger {
+        background: transparent;
+        border-color: rgba(220, 80, 80, 0.5);
+        color: rgba(220, 130, 130, 0.9);
+      }
+      .btn-sm-danger:hover {
+        background: rgba(220, 80, 80, 0.15);
+        color: #ff9999;
+      }
+
+      /* ── Tabs cuenta ── */
+      .cuenta-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem;
+      }
+      .cuenta-tabs {
+        display: flex;
+        gap: 6px;
+        background: rgba(26, 58, 42, 0.08);
+        padding: 5px;
+        border-radius: 50px;
+        margin-bottom: 2rem;
+        width: fit-content;
+      }
+      .cuenta-tab {
+        padding: 0.6rem 1.4rem;
+        border-radius: 50px;
+        border: none;
+        background: transparent;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--text-soft);
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+      .cuenta-tab:hover {
+        background: rgba(58, 140, 88, 0.1);
+        color: var(--green-mid);
+      }
+      .cuenta-tab.active {
+        background: var(--green-vivid);
+        color: white;
+        box-shadow: 0 2px 10px rgba(58, 140, 88, 0.3);
+      }
+
+      /* ── Panel Perfil ── */
+      .perfil-card {
+        background: var(--white);
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 24px rgba(26, 58, 42, 0.1);
+        max-width: 500px;
+      }
+      .perfil-avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: var(--green-vivid);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: "Playfair Display", serif;
+        font-size: 2rem;
+        color: white;
+        margin-bottom: 1.25rem;
+      }
+      .perfil-nombre {
+        font-family: "Playfair Display", serif;
+        font-size: 1.5rem;
+        color: var(--green-deep);
+      }
+      .perfil-correo {
+        font-size: 0.9rem;
+        color: var(--text-soft);
+        margin-top: 0.2rem;
+        margin-bottom: 1.5rem;
+      }
+      .perfil-dato {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--green-pale);
+      }
+      .perfil-dato:last-of-type {
+        border-bottom: none;
+      }
+      .perfil-dato .ico {
+        font-size: 1.1rem;
+      }
+      .perfil-dato .label {
+        font-size: 0.75rem;
+        color: var(--text-soft);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        display: block;
+      }
+      .perfil-dato .val {
+        font-size: 0.9rem;
+        color: var(--text-dark);
+        font-weight: 500;
+      }
+      .perfil-actions {
+        margin-top: 1.75rem;
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .btn-cerrar {
+        padding: 0.6rem 1.4rem;
+        border-radius: 50px;
+        background: transparent;
+        border: 1.5px solid var(--green-vivid);
+        color: var(--green-vivid);
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+      .btn-cerrar:hover {
+        background: var(--green-vivid);
+        color: white;
+      }
+      .btn-eliminar {
+        padding: 0.6rem 1.4rem;
+        border-radius: 50px;
+        background: transparent;
+        border: 1.5px solid #dc5050;
+        color: #dc5050;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all var(--transition);
+      }
+      .btn-eliminar:hover {
+        background: #dc5050;
+        color: white;
+      }
+
+      /* ── Panel Ordenes ── */
+      .ordenes-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.25rem;
+      }
+      .ordenes-header h2 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.3rem;
+        color: var(--green-deep);
+      }
+      .orden-card {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 2px 12px rgba(26, 58, 42, 0.08);
+        margin-bottom: 1rem;
+        border-left: 4px solid var(--green-vivid);
+        transition:
+          transform var(--transition),
+          box-shadow var(--transition);
+      }
+      .orden-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(26, 58, 42, 0.12);
+      }
+      .orden-card.alta {
+        border-left-color: #c0392b;
+      }
+      .orden-card.media {
+        border-left-color: #c9a84c;
+      }
+      .orden-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.6rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+      .orden-num {
+        font-family: "Playfair Display", serif;
+        font-size: 1rem;
+        color: var(--green-vivid);
+        font-weight: 700;
+      }
+      .orden-badges {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+      }
+      .badge {
+        display: inline-block;
+        padding: 0.22rem 0.65rem;
+        border-radius: 50px;
+        font-size: 0.72rem;
+        font-weight: 600;
+      }
+      .badge.alta {
+        background: #fde8e6;
+        color: #c0392b;
+      }
+      .badge.media {
+        background: #fdf5e0;
+        color: #a07d1a;
+      }
+      .badge.baja {
+        background: #e8f5ec;
+        color: #1a7a3a;
+      }
+      .badge.Recibida {
+        background: #e8f0fe;
+        color: #1a3a8c;
+      }
+      .badge.En-revision {
+        background: #fef3e2;
+        color: #a05a00;
+      }
+      .badge.En-proceso {
+        background: #f0eaff;
+        color: #5a2da0;
+      }
+      .badge.Completada {
+        background: #e8f5ec;
+        color: #1a7a3a;
+      }
+      .badge.Cancelada {
+        background: #f5e8e8;
+        color: #8c1a1a;
+      }
+      .orden-svc {
+        font-size: 0.85rem;
+        color: var(--text-dark);
+        font-weight: 500;
+      }
+      .orden-meta {
+        font-size: 0.78rem;
+        color: var(--text-soft);
+        margin-top: 0.4rem;
+      }
+      .orden-desc {
+        font-size: 0.82rem;
+        color: var(--text-mid);
+        margin-top: 0.5rem;
+        line-height: 1.5;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+      }
+      .empty-ordenes {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--text-soft);
+      }
+      .empty-ordenes .ico {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+      }
+      .empty-ordenes p {
+        font-size: 0.9rem;
+      }
+      .btn-nueva-orden {
+        background: var(--green-vivid);
+        color: white;
+        border: none;
+        padding: 0.6rem 1.2rem;
+        border-radius: 50px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background var(--transition);
+      }
+      .btn-nueva-orden:hover {
+        background: var(--green-mid);
+      }
+
+      /* ── Panel Solicitud (embeds el formulario de index) ── */
+      .solicitud-wrap {
+        background: var(--green-deep);
+        border-radius: 20px;
+        padding: 2rem;
+      }
+      .solicitud-title {
+        font-family: "Playfair Display", serif;
+        font-size: 1.4rem;
+        color: var(--white);
+        margin-bottom: 0.5rem;
+      }
+      .solicitud-title em {
+        color: var(--green-light);
+        font-style: italic;
+      }
+      .solicitud-sub {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.65);
+        margin-bottom: 1.5rem;
+      }
+      #form-card-cuenta {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 2rem;
+      }
+
+      /* ── Confirm modal ── */
+      .confirm-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 300;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity var(--transition);
+        padding: 1rem;
+      }
+      .confirm-overlay.open {
+        opacity: 1;
+        pointer-events: auto;
+      }
+      .confirm-box {
+        background: var(--white);
+        border-radius: 16px;
+        padding: 2rem;
+        max-width: 380px;
+        width: 100%;
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2);
+      }
+      .confirm-box h3 {
+        font-family: "Playfair Display", serif;
+        color: #c0392b;
+        margin-bottom: 0.75rem;
+      }
+      .confirm-box p {
+        font-size: 0.88rem;
+        color: var(--text-soft);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+      }
+      .confirm-btns {
+        display: flex;
+        gap: 0.75rem;
+      }
+      .confirm-btns button {
+        flex: 1;
+        padding: 0.7rem;
+        border-radius: 50px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all var(--transition);
+      }
+      .btn-cancel-confirm {
+        background: var(--green-pale);
+        color: var(--green-mid);
+      }
+      .btn-cancel-confirm:hover {
+        background: var(--green-pale);
+      }
+      .btn-delete-confirm {
+        background: #dc5050;
+        color: white;
+      }
+      .btn-delete-confirm:hover {
+        background: #b03030;
+      }
+
+      /* Hide form section styles that don't apply in this context */
+      #form-card-cuenta .form-section {
+        padding: 0;
+        background: none;
+      }
+
+      @media (max-width: 600px) {
+        .cuenta-tabs {
+          width: 100%;
+        }
+        .cuenta-tab {
+          flex: 1;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TOPBAR -->
+    <div class="cuenta-topbar">
+      <div class="cuenta-topbar-left">
+        <span class="leaf">🌿</span>
+        <h1>Biótica<em>Consultores</em></h1>
+      </div>
+      <div class="cuenta-topbar-right">
+        <div class="user-chip">
+          <div class="ava" id="topbar-ava">U</div>
+          <span id="topbar-name">Usuario</span>
+        </div>
+        <a
+          href="/"
+          style="
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 0.82rem;
+          "
+          >← Sitio</a
+        >
+        <button class="btn-sm btn-sm-ghost" onclick="logout()">
+          Cerrar sesión
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="cuenta-container">
+      <!-- TABS -->
+      <div class="cuenta-tabs">
+        <button
+          class="cuenta-tab active"
+          id="tab-perfil"
+          onclick="showTab('perfil')"
+        >
+          👤 Mi perfil
+        </button>
+        <button
+          class="cuenta-tab"
+          id="tab-ordenes"
+          onclick="showTab('ordenes')"
+        >
+          📋 Mis órdenes
+        </button>
+        <button
+          class="cuenta-tab"
+          id="tab-solicitud"
+          onclick="showTab('solicitud')"
+        >
+          ➕ Nueva solicitud
+        </button>
+      </div>
+
+      <!-- PANEL PERFIL -->
+      <div id="panel-perfil">
+        <div class="perfil-card">
+          <div class="perfil-avatar" id="perfil-ava">U</div>
+          <div class="perfil-nombre" id="perfil-nombre">—</div>
+          <div class="perfil-correo" id="perfil-correo">—</div>
+          <div class="perfil-dato">
+            <span class="ico">👤</span>
+            <div>
+              <span class="label">Usuario</span
+              ><span class="val" id="perfil-usuario-val">—</span>
+            </div>
+          </div>
+          <div class="perfil-dato">
+            <span class="ico">✉️</span>
+            <div>
+              <span class="label">Correo</span
+              ><span class="val" id="perfil-correo-val">—</span>
+            </div>
+          </div>
+          <div class="perfil-dato">
+            <span class="ico">📅</span>
+            <div>
+              <span class="label">Miembro desde</span
+              ><span class="val" id="perfil-fecha">—</span>
+            </div>
+          </div>
+          <div class="perfil-actions">
+            <button class="btn-cerrar" onclick="logout()">Cerrar sesión</button>
+            <button class="btn-eliminar" onclick="confirmarEliminar()">
+              Eliminar cuenta
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL ORDENES -->
+      <div id="panel-ordenes" class="hidden">
+        <div class="ordenes-header">
+          <h2>Mis órdenes de servicio</h2>
+          <button class="btn-nueva-orden" onclick="showTab('solicitud')">
+            + Nueva solicitud
+          </button>
+        </div>
+        <div id="ordenes-list">
+          <div class="empty-ordenes">
+            <div class="ico">📋</div>
+            <p>Cargando tus órdenes...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL SOLICITUD -->
+      <div id="panel-solicitud" class="hidden">
+        <div class="solicitud-wrap">
+          <p class="solicitud-title">Nueva solicitud <em>ambiental</em></p>
+          <p class="solicitud-sub">
+            Completa el formulario y recibe tu número de orden para seguimiento
+            inmediato.
+          </p>
+          <div id="form-card-cuenta">
+            <div
+              id="form-feedback-c"
+              class="form-feedback hidden"
+              role="alert"
+            ></div>
+            <!-- El formulario se carga aquí dinámicamente -->
+            <div
+              id="form-placeholder"
+              style="text-align: center; padding: 2rem; color: var(--text-soft)"
+            >
+              Cargando formulario...
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONFIRM MODAL -->
+    <div class="confirm-overlay" id="confirm-overlay">
+      <div class="confirm-box">
+        <h3>⚠️ Eliminar cuenta</h3>
+        <p>
+          ¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se
+          puede deshacer. Tus órdenes de servicio permanecerán registradas.
+        </p>
+        <div class="confirm-btns">
+          <button class="btn-cancel-confirm" onclick="cerrarConfirm()">
+            Cancelar
+          </button>
+          <button class="btn-delete-confirm" onclick="eliminarCuenta()">
+            Sí, eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts del sitio (subservicios, municipios, etc.) -->
+    <script src="/js/main.js"></script>
+    <script>
+      // ── Auth guard ──
+      const token = sessionStorage.getItem("biotica_user_auth");
+      const userId = sessionStorage.getItem("biotica_user_id");
+      const userName = sessionStorage.getItem("biotica_user_name") || "Usuario";
+      const userEmail = sessionStorage.getItem("biotica_user_email") || "";
+      if (!token || !userId) window.location.href = "/login-usuario.html";
+
+      // Topbar
+      document.getElementById("topbar-ava").textContent = userName
+        .charAt(0)
+        .toUpperCase();
+      document.getElementById("topbar-name").textContent = userName;
+
+      // Perfil
+      document.getElementById("perfil-ava").textContent = userName
+        .charAt(0)
+        .toUpperCase();
+      document.getElementById("perfil-nombre").textContent = userName;
+      document.getElementById("perfil-correo").textContent = userEmail;
+      document.getElementById("perfil-usuario-val").textContent = userName;
+      document.getElementById("perfil-correo-val").textContent = userEmail;
+
+      // Cargar fecha de creación
+      fetch(`/api/usuarios/${userId}/perfil`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.fecha_creacion) {
+            document.getElementById("perfil-fecha").textContent = new Date(
+              d.fecha_creacion,
+            ).toLocaleDateString("es-CO", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            });
+          }
+        })
+        .catch(() => {});
+
+      // ── Tabs ──
+      function showTab(tab) {
+        ["perfil", "ordenes", "solicitud"].forEach((t) => {
+          document.getElementById("panel-" + t).classList.add("hidden");
+          document.getElementById("tab-" + t).classList.remove("active");
+        });
+        document.getElementById("panel-" + tab).classList.remove("hidden");
+        document.getElementById("tab-" + tab).classList.add("active");
+        if (tab === "ordenes") loadOrdenes();
+        if (tab === "solicitud") initFormulario();
+      }
+
+      // ── Órdenes ──
+      const SVC = {
+        "gestion-ambiental": "Consultoría Ambiental",
+        "ordenamiento-planificacion": "Ordenamiento y Planificación",
+        "biodiversidad-restauracion": "Biodiversidad y Restauración",
+        "manejo-forestal": "Manejo Forestal",
+        ecoturismo: "Ecoturismo",
+        "innovacion-sostenibilidad": "Innovación y Sostenibilidad",
+        suministros: "Suministros",
+      };
+
+      async function loadOrdenes() {
+        const container = document.getElementById("ordenes-list");
+        container.innerHTML =
+          '<div class="empty-ordenes"><div class="ico">⏳</div><p>Cargando...</p></div>';
+        try {
+          const res = await fetch(`/api/usuarios/${userId}/ordenes`);
+          const data = await res.json();
+          if (!data.ordenes?.length) {
+            container.innerHTML = `<div class="empty-ordenes">
+            <div class="ico">📭</div>
+            <p>Aún no tienes órdenes de servicio.</p>
+            <br><button class="btn-nueva-orden" onclick="showTab('solicitud')" style="margin-top:.75rem">Crear tu primera solicitud</button>
+          </div>`;
+            return;
+          }
+          container.innerHTML = data.ordenes
+            .map((o) => {
+              const fecha = o.fecha_creacion
+                ? new Date(o.fecha_creacion).toLocaleDateString("es-CO", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })
+                : "—";
+              const estadoClass = o.estado?.replace(/\s+/g, "-") || "Recibida";
+              return `<div class="orden-card ${o.urgencia}">
+            <div class="orden-top">
+              <span class="orden-num">${o.orden}</span>
+              <div class="orden-badges">
+                <span class="badge ${o.urgencia}">${o.urgencia.charAt(0).toUpperCase() + o.urgencia.slice(1)}</span>
+                <span class="badge ${estadoClass}">${o.estado}</span>
+              </div>
+            </div>
+            <div class="orden-svc">${SVC[o.servicio] || o.servicio}${o.subservicio ? " — " + o.subservicio : ""}</div>
+            <div class="orden-meta">📍 ${o.municipio && o.departamento ? o.municipio + ", " + o.departamento : "—"} &nbsp;·&nbsp; 📅 ${fecha}</div>
+            ${o.descripcion ? `<div class="orden-desc">${o.descripcion}</div>` : ""}
+          </div>`;
+            })
+            .join("");
+        } catch (err) {
+          container.innerHTML =
+            '<div class="empty-ordenes"><div class="ico">⚠️</div><p>Error cargando órdenes.</p></div>';
+        }
+      }
+
+      // ── Formulario ──
+      let formLoaded = false;
+      async function initFormulario() {
+        if (formLoaded) return;
+        formLoaded = true;
+        // Fetch the index.html and extract the form innerHTML
+        try {
+          const res = await fetch("/");
+          const text = await res.text();
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, "text/html");
+          const form = doc.getElementById("solicitudForm");
+          if (!form) {
+            document.getElementById("form-placeholder").textContent =
+              "Error al cargar formulario.";
+            return;
+          }
+
+          // Replace placeholder with the real form
+          const placeholder = document.getElementById("form-placeholder");
+          const newForm = document.createElement("form");
+          newForm.id = "solicitudFormC";
+          newForm.noValidate = true;
+          newForm.innerHTML = form.innerHTML;
+          placeholder.replaceWith(newForm);
+
+          // Pre-fill nombre and correo from session
+          const nombreInput = newForm.querySelector("#nombre");
+          const correoInput = newForm.querySelector("#correo");
+          if (nombreInput) nombreInput.value = userName;
+          if (correoInput) correoInput.value = userEmail;
+
+          // Re-init all dynamic JS (subservicios, municipios, drag-drop etc.) by re-running relevant parts
+          reinitForm(newForm);
+        } catch (err) {
+          document.getElementById("form-placeholder").innerHTML =
+            '<p style="color:var(--red-err)">Error cargando formulario. <a href="/#form-section">Ir al formulario principal</a></p>';
+        }
+      }
+
+      function reinitForm(form) {
+        // Char counter
+        const desc = form.querySelector("#descripcion");
+        const charC = form.querySelector("#char-count");
+        desc?.addEventListener("input", () => {
+          if (charC) charC.textContent = desc.value.length;
+        });
+
+        // File drop
+        const fileInput = form.querySelector("#documento");
+        const fileDisplay = form.querySelector("#file-name-display");
+        const dropZone = form.querySelector("#file-drop-zone");
+        fileInput?.addEventListener("change", () => {
+          if (fileInput.files[0]) {
+            if (fileDisplay)
+              fileDisplay.textContent = "📄 " + fileInput.files[0].name;
+            dropZone?.classList.add("has-file");
+          }
+        });
+        ["dragenter", "dragover"].forEach((ev) =>
+          dropZone?.addEventListener(ev, (e) => {
+            e.preventDefault();
+            dropZone.classList.add("dragover");
+          }),
+        );
+        ["dragleave", "drop"].forEach((ev) =>
+          dropZone?.addEventListener(ev, (e) => {
+            e.preventDefault();
+            dropZone.classList.remove("dragover");
+          }),
+        );
+        dropZone?.addEventListener("drop", (e) => {
+          if (e.dataTransfer?.files?.length) {
+            const dt = new DataTransfer();
+            dt.items.add(e.dataTransfer.files[0]);
+            fileInput.files = dt.files;
+            if (fileDisplay)
+              fileDisplay.textContent = "📄 " + e.dataTransfer.files[0].name;
+            dropZone.classList.add("has-file");
+          }
+        });
+
+        // Servicio → subservicio
+        const servicioSel = form.querySelector("#servicio");
+        const groupSub = form.querySelector("#group-subservicio");
+        const labelSub = form.querySelector("#label-subservicio");
+        const subSel = form.querySelector("#subservicio");
+        const allSub = form.querySelectorAll(".subfields");
+
+        function hideAllSub() {
+          allSub.forEach((el) => el.classList.add("hidden"));
+        }
+
+        if (servicioSel && typeof SUBSERVICIOS !== "undefined") {
+          servicioSel.addEventListener("change", () => {
+            const val = servicioSel.value;
+            hideAllSub();
+            if (SUBSERVICIOS[val]) {
+              subSel.innerHTML =
+                '<option value="" disabled selected>Selecciona un subservicio</option>';
+              if (labelSub)
+                labelSub.innerHTML =
+                  SUBSERVICIOS[val].label + ' <span class="req">*</span>';
+              SUBSERVICIOS[val].opciones.forEach((op) => {
+                const opt = document.createElement("option");
+                opt.value = op.value;
+                opt.textContent = op.text;
+                subSel.appendChild(opt);
+              });
+              groupSub?.classList.remove("hidden");
+            } else {
+              groupSub?.classList.add("hidden");
+              if (subSel) subSel.value = "";
+            }
+          });
+          subSel?.addEventListener("change", () => {
+            hideAllSub();
+            const t = form.querySelector("#fields-" + subSel.value);
+            if (t) t.classList.remove("hidden");
+          });
+        }
+
+        // Departamento → municipio
+        const depSel = form.querySelector("#departamento");
+        const muniSel = form.querySelector("#municipio");
+        if (depSel && typeof MUNICIPIOS_COLOMBIA !== "undefined") {
+          depSel.addEventListener("change", () => {
+            const munis = MUNICIPIOS_COLOMBIA[depSel.value] || [];
+            muniSel.innerHTML =
+              '<option value="" disabled selected>Selecciona un municipio</option>';
+            munis.forEach((m) => {
+              const o = document.createElement("option");
+              o.value = m;
+              o.textContent = m;
+              muniSel.appendChild(o);
+            });
+            muniSel.disabled = false;
+            muniSel.value = "";
+          });
+        }
+
+        // Submit
+        const feedback = document.getElementById("form-feedback-c");
+        const btnSubmit = form.querySelector("#btn-submit");
+        const btnText = btnSubmit?.querySelector(".btn-text");
+        const btnLoader = btnSubmit?.querySelector(".btn-loader");
+
+        function showFeedback(msg, type) {
+          feedback.className = `form-feedback ${type}`;
+          feedback.innerHTML = (type === "success" ? "✅ " : "⚠️ ") + msg;
+          feedback.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
+        form.addEventListener("submit", async (e) => {
+          e.preventDefault();
+          feedback.className = "form-feedback hidden";
+
+          const nombre = form.querySelector("#nombre")?.value.trim();
+          const correo = form.querySelector("#correo")?.value.trim();
+          const telefono = form.querySelector("#telefono")?.value.trim();
+          const servicio = form.querySelector("#servicio")?.value;
+          const desc = form.querySelector("#descripcion")?.value.trim();
+          const urgencia = form.querySelector(
+            'input[name="urgencia"]:checked',
+          )?.value;
+
+          if (
+            !nombre ||
+            !correo ||
+            !telefono ||
+            !servicio ||
+            !desc ||
+            !urgencia
+          ) {
+            showFeedback("Completa todos los campos obligatorios.", "error");
+            return;
+          }
+
+          if (btnSubmit) {
+            btnSubmit.disabled = true;
+            btnText?.classList.add("hidden");
+            btnLoader?.classList.remove("hidden");
+          }
+
+          try {
+            const fd = new FormData(form);
+            fd.set("nombre", nombre);
+            fd.set("correo", correo);
+            fd.append("usuario_id", userId);
+
+            const res = await fetch("/api/solicitud", {
+              method: "POST",
+              body: fd,
+            });
+            const data = await res.json();
+
+            if (data.success) {
+              showFeedback(data.message, "success");
+              form.reset();
+              if (charC) charC.textContent = "0";
+              if (fileDisplay)
+                fileDisplay.textContent = "Arrastra tu archivo aquí";
+              dropZone?.classList.remove("has-file");
+              hideAllSub();
+              groupSub?.classList.add("hidden");
+              // Auto-switch to orders tab after 2s
+              setTimeout(() => showTab("ordenes"), 2000);
+            } else {
+              showFeedback(data.message || "Error al enviar.", "error");
+            }
+          } catch (err) {
+            showFeedback("Error de conexión. Intenta nuevamente.", "error");
+          } finally {
+            if (btnSubmit) {
+              btnSubmit.disabled = false;
+              btnText?.classList.remove("hidden");
+              btnLoader?.classList.add("hidden");
+            }
+          }
+        });
+      }
+
+      // ── Logout ──
+      function logout() {
+        sessionStorage.removeItem("biotica_user_auth");
+        sessionStorage.removeItem("biotica_user_id");
+        sessionStorage.removeItem("biotica_user_name");
+        sessionStorage.removeItem("biotica_user_email");
+        window.location.href = "/";
+      }
+
+      // ── Eliminar cuenta ──
+      function confirmarEliminar() {
+        document.getElementById("confirm-overlay").classList.add("open");
+      }
+      function cerrarConfirm() {
+        document.getElementById("confirm-overlay").classList.remove("open");
+      }
+
+      async function eliminarCuenta() {
+        try {
+          await fetch(`/api/usuarios/${userId}`, { method: "DELETE" });
+          logout();
+        } catch (err) {
+          alert("Error eliminando la cuenta. Intenta nuevamente.");
+        }
+      }
+      document
+        .getElementById("confirm-overlay")
+        .addEventListener("click", (e) => {
+          if (e.target === document.getElementById("confirm-overlay"))
+            cerrarConfirm();
+        });
+    </script>
+  </body>
+</html>
