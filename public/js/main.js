@@ -242,3 +242,27 @@ const animateStats = () => {
   });
 };
 window.addEventListener('scroll', animateStats, { passive: true });
+
+// =====================
+// SOLICITAR — auto-selección de servicio
+// =====================
+document.querySelectorAll('.srv-btn-primary[data-service]').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.preventDefault();
+    const serviceVal = btn.dataset.service;
+
+    // Seleccionar el servicio en el <select>
+    const select = document.getElementById('servicio');
+    if (select) {
+      select.value = serviceVal;
+      // Disparar el evento change para activar subservicios si aplica
+      select.dispatchEvent(new Event('change'));
+    }
+
+    // Scroll suave a la sección del formulario
+    const target = document.getElementById('form-section');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+});
