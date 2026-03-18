@@ -337,6 +337,403 @@
               </div>
 
               <!-- ============================================================ -->
+              <!-- ============================================================ -->
+              <!-- CAMPOS POR SUBSERVICIO — CONSULTORÍA AMBIENTAL               -->
+              <!-- ============================================================ -->
+
+              <!-- CA-1: Evaluación de Impacto Ambiental (EIA) -->
+              <div class="subfields hidden" id="fields-ca-eia">
+                <div class="subfields-header">
+                  📋 Evaluación de Impacto Ambiental (EIA)
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="eia-nombre"
+                      >Nombre del proyecto <span class="req">*</span></label
+                    >
+                    <input
+                      type="text"
+                      id="eia-nombre"
+                      name="eia_nombre"
+                      placeholder="Nombre del proyecto a evaluar"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="eia-tipo"
+                      >Tipo de actividad <span class="req">*</span></label
+                    >
+                    <div class="select-wrapper">
+                      <select id="eia-tipo" name="eia_tipo">
+                        <option value="" disabled selected>
+                          Selecciona el tipo
+                        </option>
+                        <option value="infraestructura">Infraestructura</option>
+                        <option value="energia">Energía</option>
+                        <option value="mineria">Minería</option>
+                        <option value="agroindustria">Agroindustria</option>
+                        <option value="otro">Otro</option>
+                      </select>
+                      <span class="select-arrow">▾</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="eia-ubicacion"
+                    >Ubicación geográfica <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="eia-ubicacion"
+                    name="eia_ubicacion"
+                    placeholder="Municipio y coordenadas del proyecto"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="eia-area"
+                    >Área de intervención <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="eia-area"
+                    name="eia_area"
+                    placeholder="Hectáreas y ecosistema afectado"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="eia-docs"
+                    >Documentos técnicos adjuntos
+                    <span class="optional">(opcional)</span></label
+                  >
+                  <input
+                    type="text"
+                    id="eia-docs"
+                    name="eia_docs"
+                    placeholder="Planos, estudios previos disponibles"
+                  />
+                </div>
+              </div>
+
+              <!-- CA-2: Declaración de Impacto Ambiental (DIA) -->
+              <div class="subfields hidden" id="fields-ca-dia">
+                <div class="subfields-header">
+                  📋 Declaración de Impacto Ambiental (DIA)
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="dia-nombre"
+                      >Nombre del proyecto <span class="req">*</span></label
+                    >
+                    <input
+                      type="text"
+                      id="dia-nombre"
+                      name="dia_nombre"
+                      placeholder="Nombre del proyecto"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="dia-sector"
+                      >Sector económico <span class="req">*</span></label
+                    >
+                    <div class="select-wrapper">
+                      <select id="dia-sector" name="dia_sector">
+                        <option value="" disabled selected>
+                          Selecciona el sector
+                        </option>
+                        <option value="industrial">Industrial</option>
+                        <option value="agricola">Agrícola</option>
+                        <option value="turistico">Turístico</option>
+                        <option value="otro">Otro</option>
+                      </select>
+                      <span class="select-arrow">▾</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="dia-alcance"
+                    >Alcance del proyecto <span class="req">*</span></label
+                  >
+                  <div class="select-wrapper">
+                    <select id="dia-alcance" name="dia_alcance">
+                      <option value="" disabled selected>
+                        Selecciona el alcance
+                      </option>
+                      <option value="pequena-escala">Pequeña escala</option>
+                      <option value="mediana-escala">Mediana escala</option>
+                    </select>
+                    <span class="select-arrow">▾</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="dia-area"
+                    >Área de intervención <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="dia-area"
+                    name="dia_area"
+                    placeholder="Ubicación y extensión del área"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="dia-docs"
+                    >Documentos de soporte
+                    <span class="optional">(opcional)</span></label
+                  >
+                  <input
+                    type="text"
+                    id="dia-docs"
+                    name="dia_docs"
+                    placeholder="Diagnósticos, permisos previos disponibles"
+                  />
+                </div>
+              </div>
+
+              <!-- CA-3: Plan de Manejo Ambiental (PMA) -->
+              <div class="subfields hidden" id="fields-ca-pma">
+                <div class="subfields-header">
+                  📋 Plan de Manejo Ambiental (PMA)
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="pma-proyecto"
+                      >Proyecto asociado <span class="req">*</span></label
+                    >
+                    <input
+                      type="text"
+                      id="pma-proyecto"
+                      name="pma_proyecto"
+                      placeholder="Nombre y tipo de proyecto"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="pma-objetivo"
+                      >Objetivo del plan <span class="req">*</span></label
+                    >
+                    <div class="select-wrapper">
+                      <select id="pma-objetivo" name="pma_objetivo">
+                        <option value="" disabled selected>
+                          Selecciona el objetivo
+                        </option>
+                        <option value="mitigacion">Mitigación</option>
+                        <option value="compensacion">Compensación</option>
+                        <option value="restauracion">Restauración</option>
+                      </select>
+                      <span class="select-arrow">▾</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="pma-area"
+                    >Área de intervención <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="pma-area"
+                    name="pma_area"
+                    placeholder="Ecosistema y extensión del área"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="pma-actividades"
+                    >Actividades previstas <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="pma-actividades"
+                    name="pma_actividades"
+                    placeholder="Ej. reforestación, control de emisiones..."
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="pma-docs"
+                    >Documentos de soporte
+                    <span class="optional">(opcional)</span></label
+                  >
+                  <input
+                    type="text"
+                    id="pma-docs"
+                    name="pma_docs"
+                    placeholder="EIA, licencias disponibles"
+                  />
+                </div>
+              </div>
+
+              <!-- CA-4: Diagnóstico Ambiental de Alternativas (DAA) -->
+              <div class="subfields hidden" id="fields-ca-daa">
+                <div class="subfields-header">
+                  📋 Diagnóstico Ambiental de Alternativas (DAA)
+                </div>
+                <div class="form-group">
+                  <label for="daa-nombre"
+                    >Nombre del proyecto <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="daa-nombre"
+                    name="daa_nombre"
+                    placeholder="Nombre del proyecto a evaluar"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="daa-alternativas"
+                    >Alternativas a evaluar <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="daa-alternativas"
+                    name="daa_alternativas"
+                    placeholder="Ej. Ubicación A vs Ubicación B"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="daa-criterios"
+                    >Criterios de comparación <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="daa-criterios"
+                    name="daa_criterios"
+                    placeholder="Impacto, costo, viabilidad..."
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="daa-docs"
+                    >Documentos técnicos adjuntos
+                    <span class="optional">(opcional)</span></label
+                  >
+                  <input
+                    type="text"
+                    id="daa-docs"
+                    name="daa_docs"
+                    placeholder="Estudios previos, planos disponibles"
+                  />
+                </div>
+              </div>
+
+              <!-- CA-5: Trámite de licencias y permisos ambientales -->
+              <div class="subfields hidden" id="fields-ca-licencias">
+                <div class="subfields-header">
+                  📋 Trámite de licencias y permisos ambientales
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="lic-tipo"
+                      >Tipo de licencia requerida
+                      <span class="req">*</span></label
+                    >
+                    <div class="select-wrapper">
+                      <select id="lic-tipo" name="lic_tipo">
+                        <option value="" disabled selected>
+                          Selecciona el tipo
+                        </option>
+                        <option value="construccion">Construcción</option>
+                        <option value="aprovechamiento-forestal">
+                          Aprovechamiento forestal
+                        </option>
+                        <option value="vertimientos">Vertimientos</option>
+                        <option value="emisiones">Emisiones</option>
+                        <option value="otro">Otro</option>
+                      </select>
+                      <span class="select-arrow">▾</span>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="lic-estado"
+                      >Estado del trámite <span class="req">*</span></label
+                    >
+                    <div class="select-wrapper">
+                      <select id="lic-estado" name="lic_estado">
+                        <option value="" disabled selected>
+                          Selecciona el estado
+                        </option>
+                        <option value="nuevo">Nuevo</option>
+                        <option value="renovacion">Renovación</option>
+                        <option value="modificacion">Modificación</option>
+                      </select>
+                      <span class="select-arrow">▾</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="lic-entidad"
+                    >Entidad reguladora <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="lic-entidad"
+                    name="lic_entidad"
+                    placeholder="Ej. ANLA, autoridad regional (CAR, CAS...)"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="lic-docs"
+                    >Documentos adjuntos
+                    <span class="optional">(opcional)</span></label
+                  >
+                  <input
+                    type="text"
+                    id="lic-docs"
+                    name="lic_docs"
+                    placeholder="Formularios, estudios previos disponibles"
+                  />
+                </div>
+              </div>
+
+              <!-- CA-6: Auditoría y cumplimiento normativo -->
+              <div class="subfields hidden" id="fields-ca-auditoria">
+                <div class="subfields-header">
+                  📋 Auditoría y cumplimiento normativo
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="aud-nombre"
+                      >Nombre de la empresa/proyecto
+                      <span class="req">*</span></label
+                    >
+                    <input
+                      type="text"
+                      id="aud-nombre"
+                      name="aud_nombre"
+                      placeholder="Razón social o nombre del proyecto"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="aud-normativa"
+                      >Normativa a evaluar <span class="req">*</span></label
+                    >
+                    <input
+                      type="text"
+                      id="aud-normativa"
+                      name="aud_normativa"
+                      placeholder="Ej. Resolución 0631, Decreto 1076, Ley 99..."
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="aud-alcance"
+                    >Alcance de la auditoría <span class="req">*</span></label
+                  >
+                  <input
+                    type="text"
+                    id="aud-alcance"
+                    name="aud_alcance"
+                    placeholder="Operaciones, emisiones, residuos..."
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="aud-docs"
+                    >Documentos de soporte
+                    <span class="optional">(opcional)</span></label
+                  >
+                  <input
+                    type="text"
+                    id="aud-docs"
+                    name="aud_docs"
+                    placeholder="Informes previos, licencias disponibles"
+                  />
+                </div>
+              </div>
+
               <!-- CAMPOS POR SUBSERVICIO — ORDENAMIENTO Y PLANIFICACIÓN         -->
               <!-- ============================================================ -->
 

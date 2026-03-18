@@ -35,6 +35,17 @@ fileInput?.addEventListener('change', () => {
 
 // Mapa: valor del servicio → { label, opciones[] }
 const SUBSERVICIOS = {
+  'gestion-ambiental': {
+    label: 'Subservicio de Consultoría Ambiental',
+    opciones: [
+      { value: 'ca-eia',          text: 'Evaluación de Impacto Ambiental (EIA)' },
+      { value: 'ca-dia',          text: 'Declaración de Impacto Ambiental (DIA)' },
+      { value: 'ca-pma',          text: 'Plan de Manejo Ambiental (PMA)' },
+      { value: 'ca-daa',          text: 'Diagnóstico Ambiental de Alternativas (DAA)' },
+      { value: 'ca-licencias',    text: 'Trámite de licencias y permisos ambientales' },
+      { value: 'ca-auditoria',    text: 'Auditoría y cumplimiento normativo' },
+    ]
+  },
   'ordenamiento-planificacion': {
     label: 'Subservicio de Ordenamiento y Planificación',
     opciones: [
@@ -193,9 +204,9 @@ form?.addEventListener('submit', async (e) => {
   else if (!telRe.test(telefono)) { setError('telefono', 'Ingresa un número de teléfono válido.'); valid = false; }
   if (!servicio) { setError('servicio', 'Selecciona un tipo de servicio.'); valid = false; }
 
-  // Validar subservicio si es Consultoría Ambiental
+  // Validar subservicio cuando el servicio seleccionado tiene subservicios
   const subservicio = document.getElementById('subservicio')?.value;
-  if (servicio === 'gestion-ambiental' && !subservicio) {
+  if (servicio && SUBSERVICIOS[servicio] && !subservicio) {
     setError('subservicio', 'Selecciona un subservicio.'); valid = false;
   }
 
