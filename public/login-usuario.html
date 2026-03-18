@@ -11,7 +11,7 @@
     <title>Iniciar sesión — Biótica Consultores</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&family=Open+Sans:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
     <style>
@@ -242,12 +242,7 @@
       }
       .divider::before,
       .divider::after {
-        content: "";
-        position: absolute;
-        top: 50%;
-        width: 42%;
-        height: 1px;
-        background: #e8ede6;
+        display: none;
       }
       .divider::before {
         left: 0;
@@ -292,6 +287,11 @@
       }
       .admin-link a:hover {
         color: rgba(255, 255, 255, 0.6);
+      }
+      .card h2,
+      .reg-card h2 {
+        font-family: "Open Sans", sans-serif;
+        font-weight: 700;
       }
     </style>
   </head>
