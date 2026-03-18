@@ -95,6 +95,27 @@ function extraerCamposDinamicos(body, subservicio) {
 }
 
 // ============================================================
+// POST /api/auth/login
+// ============================================================
+const USUARIOS = {
+  'Biotica': { password: 'Biotica/1973', rol: 'admin' }
+};
+
+app.post('/api/auth/login', (req, res) => {
+  const { usuario, password } = req.body;
+  if (!usuario || !password)
+    return res.status(400).json({ success: false, message: 'Usuario y contraseña son requeridos.' });
+
+  const user = USUARIOS[usuario];
+  if (!user || user.password !== password)
+    return res.status(401).json({ success: false, message: 'Usuario o contraseña incorrectos.' });
+
+  // Token simple basado en base64 (para producción usar JWT)
+  const token = Buffer.from(`${usuario}:${Date.now()}`).toString('base64');
+  return res.json({ success: true, token, usuario, rol: user.rol });
+});
+
+// ============================================================
 // POST /api/solicitud
 // ============================================================
 app.post('/api/solicitud', upload.single('documento'), async (req, res) => {
@@ -141,8 +162,7 @@ app.post('/api/solicitud', upload.single('documento'), async (req, res) => {
 
   } catch (err) {
     await client.query('ROLLBACK');
-    // console.error('Error guardando solicitud:', err);
-    console.error('Error guardando solicitud:', err.message, err.stack);
+    console.error('Error guardando solicitud:', err);
     return res.status(500).json({ success: false, message: 'Error interno del servidor. Intenta nuevamente.' });
   } finally {
     client.release();
