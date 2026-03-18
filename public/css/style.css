@@ -464,17 +464,14 @@ em {
   border: 1px solid var(--green-pale);
   transition: all var(--transition);
   cursor: default;
+  display: flex;
+  flex-direction: column;
 }
 
 .srv-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
   border-color: var(--green-vivid);
-}
-
-.srv-icon {
-  font-size: 2rem;
-  margin-bottom: 1rem;
 }
 
 .srv-card h3 {
@@ -487,6 +484,57 @@ em {
   font-size: 0.88rem;
   color: var(--text-soft);
   line-height: 1.6;
+  flex: 1;
+}
+
+/* Botones de acción — ocultos por defecto, visibles en hover */
+.srv-actions {
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+.srv-card:hover .srv-actions {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.srv-btn {
+  flex: 1;
+  text-align: center;
+  text-decoration: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: 50px;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+
+.srv-btn-primary {
+  background: var(--green-vivid);
+  color: var(--white);
+  border: 1.5px solid var(--green-vivid);
+}
+
+.srv-btn-primary:hover {
+  background: var(--green-mid);
+  border-color: var(--green-mid);
+}
+
+.srv-btn-ghost {
+  background: transparent;
+  color: var(--green-vivid);
+  border: 1.5px solid var(--green-vivid);
+}
+
+.srv-btn-ghost:hover {
+  background: var(--green-pale);
 }
 
 /* FORM SECTION */
