@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — Biótica Consultores</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --green-deep: #1a3a2a;
+        --green-mid: #2d5e40;
+        --green-vivid: #3a8c58;
+        --green-light: #6bbf7a;
+        --green-pale: #d4ead9;
+        --cream: #f5f0e8;
+        --gold: #c9a84c;
+        --text-dark: #1a2416;
+        --text-soft: #6b7d66;
+        --white: #ffffff;
+        --red: #c0392b;
+        --shadow: 0 4px 24px rgba(26, 58, 42, 0.12);
+        --radius: 12px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: #f0f4f1;
+        color: var(--text-dark);
+      }
+      .top-bar {
+        background: var(--green-deep);
+        color: white;
+        padding: 1rem 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .top-bar h1 {
+        font-family: "Playfair Display", serif;
+        font-size: 1.3rem;
+      }
+      .top-bar a {
+        color: var(--green-light);
+        text-decoration: none;
+        font-size: 0.85rem;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1.5rem;
+      }
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.25rem;
+        margin-bottom: 2rem;
+      }
+      .kpi {
+        background: var(--white);
+        border-radius: var(--radius);
+        padding: 1.5rem;
+        box-shadow: var(--shadow);
+        border-left: 4px solid var(--green-vivid);
+      }
+      .kpi.alta {
+        border-left-color: var(--red);
+      }
+      .kpi.media {
+        border-left-color: var(--gold);
+      }
+      .kpi-num {
+        font-family: "Playfair Display", serif;
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: var(--green-deep);
+      }
+      .kpi-label {
+        font-size: 0.8rem;
+        color: var(--text-soft);
+        margin-top: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      .table-section {
+        background: var(--white);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+      .table-head {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--green-pale);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .table-head h2 {
+        font-size: 1.05rem;
+        color: var(--green-deep);
+      }
+      .refresh-btn {
+        background: var(--green-vivid);
+        color: white;
+        border: none;
+        padding: 0.4rem 1rem;
+        border-radius: 50px;
+        font-size: 0.82rem;
+        cursor: pointer;
+        font-family: "DM Sans", sans-serif;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      th {
+        background: #f7faf7;
+        padding: 0.75rem 1rem;
+        text-align: left;
+        font-size: 0.78rem;
+        color: var(--text-soft);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        border-bottom: 1px solid var(--green-pale);
+      }
+      td {
+        padding: 0.85rem 1rem;
+        font-size: 0.88rem;
+        border-bottom: 1px solid #f0f4f1;
+        vertical-align: middle;
+      }
+      tr:last-child td {
+        border-bottom: none;
+      }
+      tr:hover td {
+        background: #f7faf7;
+      }
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.7rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+      .badge.alta {
+        background: #fde8e6;
+        color: var(--red);
+      }
+      .badge.media {
+        background: #fdf5e0;
+        color: #a07d1a;
+      }
+      .badge.baja {
+        background: #e8f5ec;
+        color: #1a7a3a;
+      }
+      .badge.recibida {
+        background: #e8f0fe;
+        color: #1a3a8c;
+      }
+      .empty {
+        padding: 3rem;
+        text-align: center;
+        color: var(--text-soft);
+        font-size: 0.9rem;
+      }
+      .servicios-map {
+        gestion-ambiental: "Gestión Ambiental";
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top-bar">
+      <h1>🌿 Biótica — Dashboard de Solicitudes</h1>
+      <a href="/">← Volver al sitio</a>
+    </div>
+    <div class="container">
+      <div class="kpi-grid" id="kpis">
+        <div class="kpi">
+          <span class="kpi-num" id="kpi-total">–</span
+          ><span class="kpi-label">Total solicitudes</span>
+        </div>
+        <div class="kpi alta">
+          <span class="kpi-num" id="kpi-alta">–</span
+          ><span class="kpi-label">Urgencia Alta</span>
+        </div>
+        <div class="kpi media">
+          <span class="kpi-num" id="kpi-media">–</span
+          ><span class="kpi-label">Urgencia Media</span>
+        </div>
+        <div class="kpi">
+          <span class="kpi-num" id="kpi-baja">–</span
+          ><span class="kpi-label">Urgencia Baja</span>
+        </div>
+      </div>
+      <div class="table-section">
+        <div class="table-head">
+          <h2>Solicitudes recibidas</h2>
+          <button class="refresh-btn" onclick="loadData()">↻ Actualizar</button>
+        </div>
+        <div id="table-container">
+          <p class="empty">Cargando solicitudes...</p>
+        </div>
+      </div>
+    </div>
+    <script>
+      const svcNames = {
+        "consultoria-ambiental": "Consultoría Ambiental",
+        "ordenamiento-planificacion": "Ordenamiento y Planificación",
+        "biodiversidad-restauracion": "Biodiversidad y Restauración",
+        "manejo-forestal": "Manejo Forestal",
+        ecoturismo: "Ecoturismo",
+        "innovacion-sostenibilidad": "Innovación y Sostenibilidad",
+        suministros: "Suministros",
+      };
+
+      const subsvcNames = {
+        "consultoria-ambiental": {
+          eia: "Evaluación de Impacto Ambiental (EIA)",
+          dia: "Declaración de Impacto Ambiental (DIA)",
+          pma: "Plan de Manejo Ambiental (PMA)",
+          daa: "Diagnóstico Ambiental de Alternativas (DAA)",
+          tramites: "Trámite de licencias y permisos",
+          auditoria: "Auditoría y cumplimiento normativo",
+        },
+        "ordenamiento-planificacion": {
+          "uso-suelo": "Planificación territorial y uso del suelo",
+          poar: "Planes de ordenamiento ambiental regional",
+          cuencas: "Estrategias de conservación de cuencas",
+          zonificacion: "Zonificación ecológica y económica",
+          "desarrollo-sostenible": "Planes de desarrollo sostenible",
+        },
+        "biodiversidad-restauracion": {
+          "inventario-flora": "Inventarios de flora y fauna",
+          biodiversidad: "Estudios de biodiversidad",
+          restauracion: "Proyectos de restauración ecológica",
+          "monitoreo-especies": "Monitoreo de especies amenazadas",
+          habitats: "Planes de conservación de hábitats",
+        },
+        "manejo-forestal": {
+          "inventario-forestal": "Inventarios forestales",
+          aprovechamiento: "Planes de aprovechamiento sostenible",
+          reforestacion: "Reforestación y compensación ambiental",
+          certificacion: "Certificación forestal",
+          "control-tala": "Control de tala y deforestación",
+        },
+        ecoturismo: {
+          rutas: "Diseño de rutas ecoturísticas",
+          "eia-turismo": "Evaluación de impacto ambiental turístico",
+          "manejo-areas": "Planes de manejo para áreas naturales",
+          "capacitacion-turismo": "Capacitación en turismo sostenible",
+          promocion: "Ecoturismo comunitario",
+        },
+        "innovacion-sostenibilidad": {
+          investigacion: "Proyectos de investigación aplicada",
+          "economia-circular": "Estrategias de economía circular",
+          "energias-renovables": "Energías renovables",
+          "huella-carbono": "Reducción de huella de carbono",
+          "sostenibilidad-empresarial": "Consultoría en sostenibilidad",
+        },
+        suministros: {
+          "monitoreo-equipos": "Equipos de monitoreo ambiental",
+          "insumos-forestales": "Insumos forestales",
+          "kits-restauracion": "Kits de restauración ecológica",
+          "herramientas-campo": "Herramientas para estudios de campo",
+          "equipos-seguridad": "Equipos de seguridad ambiental",
+        },
+      };
+
+      async function loadData() {
+        const res = await fetch("/api/dashboard");
+        const data = await res.json();
+        document.getElementById("kpi-total").textContent = data.total;
+        document.getElementById("kpi-alta").textContent = data.alta;
+        document.getElementById("kpi-media").textContent = data.media;
+        document.getElementById("kpi-baja").textContent = data.baja;
+        const container = document.getElementById("table-container");
+        if (!data.solicitudes.length) {
+          container.innerHTML =
+            '<p class="empty">No hay solicitudes aún. ¡Espera la primera!</p>';
+          return;
+        }
+        const rows = data.solicitudes
+          .map((s) => {
+            const servicioNombre = svcNames[s.servicio] || s.servicio;
+            const subservicioNombre =
+              subsvcNames[s.servicio] && s.subservicio
+                ? subsvcNames[s.servicio][s.subservicio] || s.subservicio
+                : s.subservicio || "";
+            return `
+        <tr>
+          <td><strong>${s.orden}</strong></td>
+          <td>${s.nombre}</td>
+          <td>${s.correo}</td>
+          <td><strong>${servicioNombre}</strong><br><small style="color:#6b7d66">${subservicioNombre}</small></td>
+          <td><span class="badge ${s.urgencia}">${s.urgencia.charAt(0).toUpperCase() + s.urgencia.slice(1)}</span></td>
+          <td><span class="badge recibida">${s.estado}</span></td>
+          <td>${new Date(s.fecha).toLocaleString("es-CO", { dateStyle: "short", timeStyle: "short" })}</td>
+        </tr>`;
+          })
+          .join("");
+        container.innerHTML = `<table>
+        <thead><tr><th>Orden</th><th>Nombre</th><th>Correo</th><th>Servicio</th><th>Urgencia</th><th>Estado</th><th>Fecha</th></tr></thead>
+        <tbody>${rows}</tbody></table>`;
+      }
+      loadData();
+      setInterval(loadData, 30000);
+    </script>
+  </body>
+</html>
