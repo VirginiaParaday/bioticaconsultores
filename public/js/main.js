@@ -375,3 +375,104 @@ depSelect?.addEventListener("change", () => {
   muniSelect.disabled = false;
   muniSelect.value = "";
 });
+// =====================
+// TABS — Formulario / Chatbot GIO
+// =====================
+function switchTab(tab) {
+  const tabForm = document.getElementById('tab-form');
+  const tabChat = document.getElementById('tab-chat');
+  const panelForm = document.getElementById('panel-form');
+  const panelChat = document.getElementById('panel-chat');
+
+  if (tab === 'form') {
+    tabForm.classList.add('active');
+    tabChat.classList.remove('active');
+    panelForm.classList.remove('hidden');
+    panelChat.classList.add('hidden');
+  } else {
+    tabChat.classList.add('active');
+    tabForm.classList.remove('active');
+    panelChat.classList.remove('hidden');
+    panelForm.classList.add('hidden');
+    document.getElementById('chat-input')?.focus();
+  }
+}
+
+// =====================
+// CHATBOT GIO
+// =====================
+const chatInput   = document.getElementById('chat-input');
+const chatSend    = document.getElementById('chat-send');
+const chatMessages = document.getElementById('chat-messages');
+
+function appendMsg(text, role) {
+  const div = document.createElement('div');
+  div.className = `chat-msg ${role}`;
+  const bubble = document.createElement('span');
+  bubble.className = 'chat-bubble';
+  bubble.innerHTML = text;
+  div.appendChild(bubble);
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return div;
+}
+
+function showTyping() {
+  const div = document.createElement('div');
+  div.className = 'chat-msg bot chat-typing';
+  div.id = 'chat-typing';
+  div.innerHTML = '<span class="chat-bubble"><span></span><span></span><span></span></span>';
+  chatMessages.appendChild(div);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function removeTyping() {
+  document.getElementById('chat-typing')?.remove();
+}
+
+async function sendChat() {
+  const text = chatInput?.value.trim();
+  if (!text) return;
+  chatInput.value = '';
+  appendMsg(text, 'user');
+  showTyping();
+  chatSend.disabled = true;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: `Eres GIO, el asistente virtual amigable y experto de Biótica Consultores Ltda, una empresa colombiana de consultoría ambiental con más de 15 años de experiencia. 
+Ayudas a los usuarios a entender los servicios de la empresa y a orientar sus solicitudes. Los servicios que ofrece Biótica son:
+1. Consultoría Ambiental (EIA, DIA, PMA, DAA, licencias, auditorías)
+2. Ordenamiento y Planificación territorial
+3. Biodiversidad y Restauración ecológica
+4. Manejo Forestal
+5. Ecoturismo
+6. Innovación y Sostenibilidad
+7. Suministros ambientales
+
+Responde siempre en español, de forma clara, cálida y profesional. Cuando el usuario quiera hacer una solicitud formal, indícale que puede usar el formulario en la pestaña "Formulario". Sé conciso (máximo 3 párrafos cortos).`,
+        messages: [{ role: 'user', content: text }]
+      })
+    });
+    const data = await res.json();
+    removeTyping();
+    const reply = data.content?.map(b => b.text || '').join('') || 'Lo siento, no pude procesar tu mensaje. Intenta de nuevo.';
+    appendMsg(reply.replace(/\n/g, '<br>'), 'bot');
+  } catch (err) {
+    removeTyping();
+    appendMsg('Hubo un error de conexión. Por favor intenta de nuevo.', 'bot');
+  } finally {
+    chatSend.disabled = false;
+    chatInput?.focus();
+  }
+}
+
+chatSend?.addEventListener('click', sendChat);
+chatInput?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+});
