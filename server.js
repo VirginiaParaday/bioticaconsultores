@@ -1,127 +1,226 @@
+require('dotenv').config();
 const express = require('express');
-const multer = require('multer');
+const multer  = require('multer');
 const { v4: uuidv4 } = require('uuid');
-const path = require('path');
-const fs = require('fs');
+const { Pool }       = require('pg');
+const path  = require('path');
+const fs    = require('fs');
 
-const app = express();
-const PORT = 3000;
+const app  = express();
+const PORT = process.env.PORT || 3000;
 
-// In-memory store for requests
-const solicitudes = [];
+// ============================================================
+// CONEXIÓN POSTGRESQL
+// ============================================================
+const pool = new Pool(
+  process.env.DATABASE_URL
+    ? { connectionString: process.env.DATABASE_URL, ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false }
+    : {
+        host:     process.env.DB_HOST     || 'localhost',
+        port:     process.env.DB_PORT     || 5432,
+        database: process.env.DB_NAME     || 'biotica',
+        user:     process.env.DB_USER     || 'biotica_user',
+        password: process.env.DB_PASSWORD || '',
+        ssl:      process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+      }
+);
 
-// Multer storage
+pool.connect()
+  .then(client => { client.release(); console.log('✅ Conectado a PostgreSQL'); })
+  .catch(err  => console.error('❌ Error conectando a PostgreSQL:', err.message));
+
+// ============================================================
+// MULTER
+// ============================================================
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = path.join(__dirname, 'uploads');
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
   filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
 const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
+// ============================================================
+// MIDDLEWARES
+// ============================================================
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
-// Explicit root route
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Valid services
-const serviciosValidos = [
-  'consultoria-ambiental',
-  'ordenamiento-planificacion',
-  'biodiversidad-restauracion',
-  'manejo-forestal',
-  'ecoturismo',
-  'innovacion-sostenibilidad',
-  'suministros'
+// ============================================================
+// CONSTANTES
+// ============================================================
+const SERVICIOS_VALIDOS = [
+  'gestion-ambiental','ordenamiento-planificacion','biodiversidad-restauracion',
+  'manejo-forestal','ecoturismo','innovacion-sostenibilidad','suministros',
 ];
 
-// Valid subservicios by category
-const subserviciosValidos = {
-  'consultoria-ambiental': ['eia', 'dia', 'pma', 'daa', 'tramites', 'auditoria'],
-  'ordenamiento-planificacion': ['uso-suelo', 'poar', 'cuencas', 'zonificacion', 'desarrollo-sostenible'],
-  'biodiversidad-restauracion': ['inventario-flora', 'biodiversidad', 'restauracion', 'monitoreo-especies', 'habitats'],
-  'manejo-forestal': ['inventario-forestal', 'aprovechamiento', 'reforestacion', 'certificacion', 'control-tala'],
-  'ecoturismo': ['rutas', 'eia-turismo', 'manejo-areas', 'capacitacion-turismo', 'promocion'],
-  'innovacion-sostenibilidad': ['investigacion', 'economia-circular', 'energias-renovables', 'huella-carbono', 'sostenibilidad-empresarial'],
-  'suministros': ['monitoreo-equipos', 'insumos-forestales', 'kits-restauracion', 'herramientas-campo', 'equipos-seguridad']
+const PREFIJOS_SUBSERVICIO = {
+  'ca-eia':'eia_','ca-dia':'dia_','ca-pma':'pma_','ca-daa':'daa_',
+  'ca-licencias':'lic_','ca-auditoria':'aud_',
+  'op-planificacion-territorial':'op1_','op-ordenamiento-ambiental':'op2_',
+  'op-cuencas-hidrograficas':'op3_','op-zonificacion':'op4_','op-desarrollo-sostenible':'op5_',
+  'inventarios-flora-fauna':'if_','estudios-biodiversidad':'eb_',
+  'restauracion-ecologica':'re_','monitoreo-flora-fauna':'mf_',
+  'monitoreo-especies-amenazadas':'me_','planes-conservacion':'pc_',
+  'mf-inventarios-forestales':'mfi_','mf-aprovechamiento':'mfa_',
+  'mf-reforestacion':'mfr_','mf-certificacion':'mfc_','mf-control-tala':'mft_',
+  'eco-rutas':'eco1_','eco-impacto':'eco2_','eco-manejo':'eco3_',
+  'eco-capacitacion':'eco4_','eco-promocion':'eco5_',
+  'inn-investigacion':'inn1_','inn-economia-circular':'inn2_',
+  'inn-energias-renovables':'inn3_','inn-huella-carbono':'inn4_',
+  'inn-sostenibilidad-empresarial':'inn5_',
+  'sum-monitoreo':'sum1_','sum-insumos-forestales':'sum2_',
+  'sum-kits-restauracion':'sum3_','sum-herramientas':'sum4_','sum-seguridad':'sum5_',
 };
 
-// Generate order number
-function generarOrden() {
+// ============================================================
+// HELPERS
+// ============================================================
+async function generarOrden(client) {
   const year = new Date().getFullYear();
-  const num = String(solicitudes.length + 1).padStart(3, '0');
-  return `BIO-${year}-${num}`;
+  const { rows } = await client.query(
+    `SELECT COUNT(*) AS total FROM solicitudes WHERE EXTRACT(YEAR FROM fecha_creacion) = $1`, [year]
+  );
+  return `BIO-${year}-${String(Number(rows[0].total) + 1).padStart(3, '0')}`;
 }
 
+function extraerCamposDinamicos(body, subservicio) {
+  if (!subservicio || !PREFIJOS_SUBSERVICIO[subservicio]) return {};
+  const prefix = PREFIJOS_SUBSERVICIO[subservicio];
+  return Object.fromEntries(Object.entries(body).filter(([k, v]) => k.startsWith(prefix) && v));
+}
+
+// ============================================================
 // POST /api/solicitud
-app.post('/api/solicitud', upload.single('documento'), (req, res) => {
-  const { nombre, correo, telefono, servicio, subservicio, descripcion, urgencia } = req.body;
+// ============================================================
+app.post('/api/solicitud', upload.single('documento'), async (req, res) => {
+  const { nombre, correo, telefono, servicio, subservicio,
+          departamento, municipio, descripcion, urgencia } = req.body;
 
-  // Validate required fields
-  if (!nombre || !correo || !telefono || !servicio || !subservicio || !descripcion || !urgencia) {
+  if (!nombre || !correo || !telefono || !servicio || !descripcion || !urgencia)
     return res.status(400).json({ success: false, message: 'Todos los campos obligatorios deben completarse.' });
-  }
 
-  // Email validation
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(correo)) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo))
     return res.status(400).json({ success: false, message: 'Por favor ingresa un correo válido.' });
-  }
 
-  // Service validation
-  if (!serviciosValidos.includes(servicio)) {
+  if (!SERVICIOS_VALIDOS.includes(servicio))
     return res.status(422).json({ success: false, outOfPortfolio: true, message: 'Este servicio no está en nuestro portafolio.' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const orden = await generarOrden(client);
+
+    const { rows } = await client.query(
+      `INSERT INTO solicitudes
+        (orden, nombre, correo, telefono, departamento, municipio,
+         servicio, subservicio, descripcion, urgencia, archivo, estado)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'Recibida') RETURNING id`,
+      [orden, nombre, correo, telefono,
+       departamento || null, municipio || null,
+       servicio, subservicio || null, descripcion, urgencia,
+       req.file ? req.file.filename : null]
+    );
+    const solicitudId = rows[0].id;
+
+    const campos = extraerCamposDinamicos(req.body, subservicio);
+    if (Object.keys(campos).length > 0) {
+      const entries = Object.entries(campos);
+      const vals = entries.flatMap(([campo, valor]) => [solicitudId, campo, valor]);
+      const ph   = entries.map((_, i) => `($${i*3+1},$${i*3+2},$${i*3+3})`).join(',');
+      await client.query(`INSERT INTO campos_dinamicos (solicitud_id, campo, valor) VALUES ${ph}`, vals);
+    }
+
+    await client.query('COMMIT');
+    return res.json({ success: true, orden,
+      message: `Tu orden ha sido generada: ${orden}. Revisa tu correo para el seguimiento.` });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    // console.error('Error guardando solicitud:', err);
+    console.error('Error guardando solicitud:', err.message, err.stack);
+    return res.status(500).json({ success: false, message: 'Error interno del servidor. Intenta nuevamente.' });
+  } finally {
+    client.release();
   }
+});
 
-  // Subservicio validation
-  const subserviciosCategoria = subserviciosValidos[servicio];
-  if (!subserviciosCategoria || !subserviciosCategoria.includes(subservicio)) {
-    return res.status(422).json({ success: false, outOfPortfolio: true, message: 'Este subservicio no está en nuestro portafolio.' });
+// ============================================================
+// GET /api/dashboard
+// ============================================================
+app.get('/api/dashboard', async (req, res) => {
+  try {
+    const [statsRes, solRes] = await Promise.all([
+      pool.query('SELECT * FROM dashboard_stats'),
+      pool.query(`SELECT id, orden, nombre, correo, telefono, servicio, subservicio,
+                         departamento, municipio, urgencia, estado, fecha_creacion
+                  FROM solicitudes ORDER BY fecha_creacion DESC LIMIT 100`)
+    ]);
+    const s = statsRes.rows[0];
+    return res.json({
+      total: Number(s.total), alta: Number(s.alta),
+      media: Number(s.media), baja: Number(s.baja),
+      recibidas: Number(s.recibidas), en_proceso: Number(s.en_proceso),
+      completadas: Number(s.completadas), solicitudes: solRes.rows,
+    });
+  } catch (err) {
+    console.error('Error en dashboard:', err);
+    return res.status(500).json({ error: 'Error obteniendo datos.' });
   }
-
-  const orden = generarOrden();
-  const solicitud = {
-    id: uuidv4(),
-    orden,
-    nombre,
-    correo,
-    telefono,
-    servicio,
-    subservicio,
-    descripcion,
-    urgencia,
-    archivo: req.file ? req.file.filename : null,
-    estado: 'Recibida',
-    fecha: new Date().toISOString()
-  };
-
-  solicitudes.push(solicitud);
-
-  return res.json({
-    success: true,
-    orden,
-    message: `Tu orden ha sido generada: ${orden}. Revisa tu correo para el seguimiento.`
-  });
 });
 
-// GET dashboard data
-app.get('/api/dashboard', (req, res) => {
-  const stats = {
-    total: solicitudes.length,
-    alta: solicitudes.filter(s => s.urgencia === 'alta').length,
-    media: solicitudes.filter(s => s.urgencia === 'media').length,
-    baja: solicitudes.filter(s => s.urgencia === 'baja').length,
-    solicitudes: solicitudes.slice().reverse()
-  };
-  res.json(stats);
+// ============================================================
+// GET /api/solicitud/:orden — Detalle completo
+// ============================================================
+app.get('/api/solicitud/:orden', async (req, res) => {
+  try {
+    const { rows: sol } = await pool.query('SELECT * FROM solicitudes WHERE orden = $1', [req.params.orden]);
+    if (!sol.length) return res.status(404).json({ error: 'Solicitud no encontrada.' });
+    const [campos, historial] = await Promise.all([
+      pool.query('SELECT campo, valor FROM campos_dinamicos WHERE solicitud_id = $1', [sol[0].id]),
+      pool.query('SELECT * FROM historial_estados WHERE solicitud_id = $1 ORDER BY created_at ASC', [sol[0].id])
+    ]);
+    return res.json({ ...sol[0], campos_dinamicos: campos.rows, historial: historial.rows });
+  } catch (err) {
+    console.error('Error obteniendo solicitud:', err);
+    return res.status(500).json({ error: 'Error interno.' });
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`🌿 Biótica Consultores - Servidor corriendo en http://localhost:${PORT}`);
+// ============================================================
+// PATCH /api/solicitud/:orden/estado
+// ============================================================
+app.patch('/api/solicitud/:orden/estado', async (req, res) => {
+  const { estado, observacion, cambiado_por } = req.body;
+  const validos = ['Recibida','En revisión','En proceso','Completada','Cancelada'];
+  if (!validos.includes(estado)) return res.status(400).json({ error: 'Estado no válido.' });
+  try {
+    const { rows } = await pool.query(
+      `UPDATE solicitudes SET estado = $1 WHERE orden = $2 RETURNING id, orden, estado`,
+      [estado, req.params.orden]
+    );
+    if (!rows.length) return res.status(404).json({ error: 'Solicitud no encontrada.' });
+    if (observacion || cambiado_por) {
+      await pool.query(
+        `UPDATE historial_estados SET observacion=$1, cambiado_por=$2
+         WHERE solicitud_id=$3 AND estado_nuevo=$4 AND cambiado_por='sistema'`,
+        [observacion||null, cambiado_por||'sistema', rows[0].id, estado]
+      );
+    }
+    return res.json({ success: true, ...rows[0] });
+  } catch (err) {
+    console.error('Error actualizando estado:', err);
+    return res.status(500).json({ error: 'Error interno.' });
+  }
 });
+
+// ============================================================
+// START
+// ============================================================
+app.listen(PORT, () =>
+  console.log(`🌿 Biótica Consultores — Servidor en http://localhost:${PORT}`)
+);
