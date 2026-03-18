@@ -521,6 +521,96 @@
           opacity: 0.3;
         }
       }
+
+      /* Asesor cards dashboard */
+      .asesor-dash-card {
+        background: #f7faf7;
+        border: 1.5px solid var(--green-pale);
+        border-radius: 14px;
+        padding: 1.1rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+        position: relative;
+        transition: all 0.3s;
+      }
+      .asesor-dash-card:hover {
+        border-color: var(--green-vivid);
+        box-shadow: 0 4px 16px rgba(58, 140, 88, 0.15);
+      }
+      .asesor-dash-photo-wrap {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2.5px solid var(--green-pale);
+      }
+      .asesor-dash-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top;
+      }
+      .asesor-dash-status-dot {
+        position: absolute;
+        top: 0.9rem;
+        right: 0.9rem;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        background: #9ca3af;
+        border: 2px solid #f7faf7;
+      }
+      .asesor-dash-status-dot.online {
+        background: #4ade80;
+        animation: pulse 2s infinite;
+      }
+      .asesor-dash-info {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+      }
+      .asesor-dash-cargo {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--green-vivid);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      .asesor-dash-nombre {
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--green-deep);
+        font-family: "Playfair Display", serif;
+      }
+      .asesor-dash-online {
+        font-size: 0.75rem;
+        color: var(--text-soft);
+      }
+      .asesor-dash-users {
+        font-size: 0.72rem;
+        color: var(--text-soft);
+      }
+      .asesor-dash-btn {
+        width: 100%;
+        padding: 0.5rem;
+        border-radius: 50px;
+        border: none;
+        background: var(--green-vivid);
+        color: white;
+        font-family: "DM Sans", sans-serif;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 0.25rem;
+      }
+      .asesor-dash-btn:hover {
+        background: var(--green-mid);
+      }
+
       @media (max-width: 700px) {
         .kpi-grid {
           grid-template-columns: 1fr 1fr;
@@ -640,6 +730,112 @@
               <div class="empty-icon">📋</div>
               <p>Cargando solicitudes...</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MÓDULO ASESOR VIRTUAL -->
+      <div style="margin-top: 2rem">
+        <div
+          style="
+            background: var(--white);
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            border-bottom: 1px solid var(--green-pale);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.1rem 1.5rem;
+          "
+        >
+          <h3
+            style="
+              font-size: 1rem;
+              color: var(--green-deep);
+              font-family: &quot;Playfair Display&quot;, serif;
+            "
+          >
+            👤 Asesores Virtuales
+          </h3>
+          <span
+            id="asesor-status-bar"
+            style="font-size: 0.78rem; color: var(--text-soft)"
+            >Cargando...</span
+          >
+        </div>
+        <div
+          style="
+            background: var(--white);
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1.25rem;
+            box-shadow: 0 4px 24px rgba(26, 58, 42, 0.1);
+          "
+        >
+          <div class="asesor-dash-card" id="dash-card-jose">
+            <div class="asesor-dash-photo-wrap">
+              <img
+                src="/images/asesor-jose.webp"
+                alt="José"
+                class="asesor-dash-photo"
+                onerror="this.style.display = 'none'"
+              />
+            </div>
+            <div class="asesor-dash-status-dot" id="dot-jose"></div>
+            <div class="asesor-dash-info">
+              <span class="asesor-dash-cargo"
+                >Director Técnico y Científico</span
+              >
+              <span class="asesor-dash-nombre">José Ariel Dueñas Cepeda</span>
+              <span class="asesor-dash-online" id="label-jose">—</span>
+              <span class="asesor-dash-users" id="users-jose"></span>
+            </div>
+            <button class="asesor-dash-btn" onclick="abrirChatAsesor('jose')">
+              Abrir chat
+            </button>
+          </div>
+          <div class="asesor-dash-card" id="dash-card-elkin">
+            <div class="asesor-dash-photo-wrap">
+              <img
+                src="/images/asesor-elkin.webp"
+                alt="Elkin"
+                class="asesor-dash-photo"
+                onerror="this.style.display = 'none'"
+              />
+            </div>
+            <div class="asesor-dash-status-dot" id="dot-elkin"></div>
+            <div class="asesor-dash-info">
+              <span class="asesor-dash-cargo"
+                >Director Desarrollo Sostenible</span
+              >
+              <span class="asesor-dash-nombre">Elkin René Briceño Lara</span>
+              <span class="asesor-dash-online" id="label-elkin">—</span>
+              <span class="asesor-dash-users" id="users-elkin"></span>
+            </div>
+            <button class="asesor-dash-btn" onclick="abrirChatAsesor('elkin')">
+              Abrir chat
+            </button>
+          </div>
+          <div class="asesor-dash-card" id="dash-card-leonel">
+            <div class="asesor-dash-photo-wrap">
+              <img
+                src="/images/asesor-leonel.webp"
+                alt="Leonel"
+                class="asesor-dash-photo"
+                onerror="this.style.display = 'none'"
+              />
+            </div>
+            <div class="asesor-dash-status-dot" id="dot-leonel"></div>
+            <div class="asesor-dash-info">
+              <span class="asesor-dash-cargo">Apoyo Técnico en Campo</span>
+              <span class="asesor-dash-nombre">Leonel Andrés Torres</span>
+              <span class="asesor-dash-online" id="label-leonel">—</span>
+              <span class="asesor-dash-users" id="users-leonel"></span>
+            </div>
+            <button class="asesor-dash-btn" onclick="abrirChatAsesor('leonel')">
+              Abrir chat
+            </button>
           </div>
         </div>
       </div>
@@ -869,6 +1065,48 @@
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") closeModalDirect();
       });
+
+      // ── Asesores: estado en tiempo real ──
+      async function loadAsesorStatus() {
+        try {
+          const res = await fetch("/api/chat/status");
+          const data = await res.json();
+          let online = 0;
+          ["jose", "elkin", "leonel"].forEach((id) => {
+            const s = data[id] || {};
+            const dot = document.getElementById("dot-" + id);
+            const label = document.getElementById("label-" + id);
+            const users = document.getElementById("users-" + id);
+            if (dot)
+              dot.className =
+                "asesor-dash-status-dot" + (s.online ? " online" : "");
+            if (label)
+              label.textContent = s.online ? "🟢 En línea" : "⚫ Desconectado";
+            if (users)
+              users.textContent =
+                s.usuarios > 0 ? `${s.usuarios} usuario(s) activo(s)` : "";
+            if (s.online) online++;
+          });
+          const bar = document.getElementById("asesor-status-bar");
+          if (bar)
+            bar.textContent =
+              online > 0
+                ? `${online} asesor(es) en línea`
+                : "Sin asesores en línea";
+        } catch (e) {}
+      }
+
+      function abrirChatAsesor(id) {
+        // El admin Biotica abre el chat como asesor
+        window.open(
+          `/chat-asesor.html?asesor=${id}&rol=asesor&nombre=Asesor+Biótica`,
+          "_blank",
+          "width=600,height=700",
+        );
+      }
+
+      loadAsesorStatus();
+      setInterval(loadAsesorStatus, 8000);
       loadData();
       setInterval(loadData, 30000);
     </script>

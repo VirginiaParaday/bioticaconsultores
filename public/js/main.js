@@ -520,6 +520,13 @@ function solicitarConAsesor() {
   document.getElementById('form-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function chatearConAsesor() {
+  if (!asesorSeleccionado) return;
+  const nombre = sessionStorage.getItem('biotica_user_name') || '';
+  const url = `/chat-asesor.html?asesor=${asesorSeleccionado}${nombre ? '&nombre='+encodeURIComponent(nombre) : ''}`;
+  window.open(url, '_blank', 'width=600,height=700,noopener');
+}
+
 function showAsesorBanner(asesor) {
   document.getElementById('asesor-banner')?.remove();
   const formCard = document.getElementById('panel-form');

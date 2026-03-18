@@ -352,8 +352,152 @@ app.patch('/api/solicitud/:orden/estado', async (req, res) => {
 });
 
 // ============================================================
-// START
+// START + WEBSOCKET
 // ============================================================
-app.listen(PORT, () =>
+const { WebSocketServer } = require('ws');
+const http = require('http');
+
+const server = http.createServer(app);
+const wss    = new WebSocketServer({ server });
+
+// Salas por asesor: { asesorId: { asesor: ws|null, usuarios: Map<id, ws> } }
+const salas = {};
+
+const ASESORES_IDS = ['jose', 'elkin', 'leonel'];
+ASESORES_IDS.forEach(id => {
+  salas[id] = { asesor: null, usuarios: new Map() };
+});
+
+function broadcast(room, msg, excludeWs = null) {
+  const sala = salas[room];
+  if (!sala) return;
+  const data = JSON.stringify(msg);
+  if (sala.asesor && sala.asesor !== excludeWs && sala.asesor.readyState === 1)
+    sala.asesor.send(data);
+  sala.usuarios.forEach((ws) => {
+    if (ws !== excludeWs && ws.readyState === 1) ws.send(data);
+  });
+}
+
+function getOnlineUsers(room) {
+  const sala = salas[room];
+  if (!sala) return 0;
+  return sala.usuarios.size;
+}
+
+wss.on('connection', (ws) => {
+  ws.meta = {};
+
+  ws.on('message', (raw) => {
+    let msg;
+    try { msg = JSON.parse(raw); } catch { return; }
+
+    // ── JOIN ──────────────────────────────────────────────
+    if (msg.type === 'join') {
+      const { room, rol, nombre } = msg; // rol: 'asesor' | 'usuario'
+      if (!salas[room]) return;
+
+      ws.meta = { room, rol, nombre: nombre || 'Usuario' };
+
+      if (rol === 'asesor') {
+        // Desconectar sesión anterior del asesor si existe
+        if (salas[room].asesor && salas[room].asesor.readyState === 1) {
+          salas[room].asesor.send(JSON.stringify({ type: 'system', text: 'Nueva sesión iniciada en otro dispositivo.' }));
+          salas[room].asesor.close();
+        }
+        salas[room].asesor = ws;
+        ws.send(JSON.stringify({
+          type: 'joined',
+          room,
+          online: getOnlineUsers(room),
+          text: `Conectado como asesor. ${getOnlineUsers(room)} usuario(s) en sala.`
+        }));
+        // Notificar usuarios que el asesor está en línea
+        salas[room].usuarios.forEach((uws) => {
+          if (uws.readyState === 1)
+            uws.send(JSON.stringify({ type: 'asesor-status', online: true, text: `${nombre} está en línea.` }));
+        });
+      } else {
+        // Usuario
+        const userId = Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+        ws.meta.userId = userId;
+        salas[room].usuarios.set(userId, ws);
+        ws.send(JSON.stringify({
+          type: 'joined',
+          room,
+          userId,
+          asesorOnline: !!(salas[room].asesor && salas[room].asesor.readyState === 1),
+          text: salas[room].asesor && salas[room].asesor.readyState === 1
+            ? 'Conectado. El asesor está disponible.'
+            : 'Conectado. El asesor no está disponible en este momento, deja tu mensaje y te responderá pronto.'
+        }));
+        // Notificar al asesor
+        if (salas[room].asesor && salas[room].asesor.readyState === 1) {
+          salas[room].asesor.send(JSON.stringify({
+            type: 'user-joined',
+            nombre: ws.meta.nombre,
+            online: getOnlineUsers(room)
+          }));
+        }
+      }
+    }
+
+    // ── MESSAGE ───────────────────────────────────────────
+    if (msg.type === 'message') {
+      const { room, rol, nombre, text } = ws.meta;
+      if (!room || !text?.trim()) return;
+      const payload = {
+        type: 'message',
+        from: rol === 'asesor' ? 'asesor' : 'usuario',
+        nombre: nombre || 'Usuario',
+        text: msg.text,
+        ts: new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })
+      };
+      broadcast(room, payload);
+    }
+
+    // ── TYPING ────────────────────────────────────────────
+    if (msg.type === 'typing') {
+      const { room, rol, nombre } = ws.meta;
+      if (!room) return;
+      broadcast(room, { type: 'typing', from: rol, nombre }, ws);
+    }
+  });
+
+  ws.on('close', () => {
+    const { room, rol, userId, nombre } = ws.meta;
+    if (!room) return;
+    if (rol === 'asesor') {
+      salas[room].asesor = null;
+      salas[room].usuarios.forEach(uws => {
+        if (uws.readyState === 1)
+          uws.send(JSON.stringify({ type: 'asesor-status', online: false, text: 'El asesor se ha desconectado.' }));
+      });
+    } else if (userId) {
+      salas[room].usuarios.delete(userId);
+      if (salas[room].asesor && salas[room].asesor.readyState === 1) {
+        salas[room].asesor.send(JSON.stringify({
+          type: 'user-left',
+          nombre,
+          online: getOnlineUsers(room)
+        }));
+      }
+    }
+  });
+});
+
+// GET /api/chat/status — estado de asesores en línea
+app.get('/api/chat/status', (req, res) => {
+  const status = {};
+  ASESORES_IDS.forEach(id => {
+    status[id] = {
+      online: !!(salas[id].asesor && salas[id].asesor.readyState === 1),
+      usuarios: salas[id].usuarios.size
+    };
+  });
+  res.json(status);
+});
+
+server.listen(PORT, () =>
   console.log(`🌿 Biótica Consultores — Servidor en http://localhost:${PORT}`)
 );

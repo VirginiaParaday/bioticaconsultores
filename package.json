@@ -1,7 +1,7 @@
 {
   "name": "biotica",
   "version": "1.0.0",
-  "description": "Biótica Consultores — Plataforma de Solicitudes Ambientales",
+  "description": "Bi\u00f3tica Consultores \u2014 Plataforma de Solicitudes Ambientales",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -16,7 +16,8 @@
     "express": "^5.2.1",
     "multer": "^2.1.1",
     "pg": "^8.13.3",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
