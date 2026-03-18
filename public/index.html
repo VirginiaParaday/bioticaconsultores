@@ -234,15 +234,16 @@
         <span class="eyebrow light">Plataforma de Gestión</span>
         <h2>Solicita tu servicio <em>ambiental</em></h2>
         <p>
-          Completa tu solicitud en el formulario o conversa con
+          Completa tu solicitud en el formulario, conversa con
           <span
             id="gio-trigger"
             onclick="openGioVideo()"
             title="Ver cómo funciona GIO"
             >GIO</span
           >
-          nuestro chatbox y recibe tu número de orden para seguimiento
-          inmediato.
+          nuestro chatbox o con uno de nuestros
+          <strong style="color: var(--green-light)">Asesores Virtuales</strong>
+          y recibe tu número de orden para seguimiento inmediato.
         </p>
 
         <!-- Modal video GIO -->
@@ -300,6 +301,14 @@
               onclick="switchTab('chat')"
             >
               💬 Chatbot — GIO
+            </button>
+            <button
+              class="form-tab"
+              id="tab-asesor"
+              type="button"
+              onclick="switchTab('asesor')"
+            >
+              👤 Asesor virtual
             </button>
           </div>
 
@@ -3256,7 +3265,7 @@
                     >
                   </label>
                   <label class="urgency-option media-opt">
-                    <input type="radio" name="urgencia" value="media" />
+                    <input type="radio" name="urgencia" value="media" checked />
                     <span class="urgency-dot"></span>
                     <span class="urgency-text"
                       ><strong>Media</strong> — 2–3 días</span
@@ -3396,6 +3405,89 @@
                   <polygon points="22 2 15 22 11 13 2 9 22 2" />
                 </svg>
               </button>
+            </div>
+          </div>
+
+          <!-- PANEL ASESOR VIRTUAL -->
+          <div class="form-card hidden" id="panel-asesor" style="padding: 2rem">
+            <div class="asesor-header">
+              <h3 class="asesor-title">Elige tu asesor virtual</h3>
+              <p class="asesor-sub">
+                Selecciona uno de nuestros expertos para atender tu solicitud
+                ambiental.
+              </p>
+            </div>
+            <div class="asesores-grid">
+              <div class="asesor-card" onclick="selectAsesor(this, 'jose')">
+                <div class="asesor-img-wrap">
+                  <img
+                    src="/images/asesor-jose.webp"
+                    alt="José Ariel Dueñas Cepeda"
+                    class="asesor-img"
+                  />
+                </div>
+                <div class="asesor-info">
+                  <span class="asesor-cargo"
+                    >Director Técnico y Científico</span
+                  >
+                  <span class="asesor-nombre">José Ariel Dueñas Cepeda</span>
+                </div>
+                <div class="asesor-check">✓</div>
+              </div>
+
+              <div class="asesor-card" onclick="selectAsesor(this, 'elkin')">
+                <div class="asesor-img-wrap">
+                  <img
+                    src="/images/asesor-elkin.webp"
+                    alt="Elkin René Briceño Lara"
+                    class="asesor-img"
+                  />
+                </div>
+                <div class="asesor-info">
+                  <span class="asesor-cargo"
+                    >Director Desarrollo Sostenible e Innovación</span
+                  >
+                  <span class="asesor-nombre">Elkin René Briceño Lara</span>
+                </div>
+                <div class="asesor-check">✓</div>
+              </div>
+
+              <div class="asesor-card" onclick="selectAsesor(this, 'leonel')">
+                <div class="asesor-img-wrap">
+                  <img
+                    src="/images/asesor-leonel.webp"
+                    alt="Leonel Andrés Torres"
+                    class="asesor-img"
+                  />
+                </div>
+                <div class="asesor-info">
+                  <span class="asesor-cargo">Apoyo Técnico en Campo</span>
+                  <span class="asesor-nombre">Leonel Andrés Torres</span>
+                </div>
+                <div class="asesor-check">✓</div>
+              </div>
+            </div>
+
+            <div id="asesor-selected-info" class="asesor-selected hidden">
+              <div class="asesor-selected-msg" id="asesor-msg-text"></div>
+              <div
+                style="
+                  display: flex;
+                  gap: 0.75rem;
+                  margin-top: 1.25rem;
+                  flex-wrap: wrap;
+                "
+              >
+                <button
+                  class="asesor-btn-primary"
+                  onclick="solicitarConAsesor()"
+                >
+                  ✅ Ir al formulario con este asesor
+                </button>
+                <button class="asesor-btn-ghost" onclick="clearAsesor()">
+                  Cambiar asesor
+                </button>
+              </div>
             </div>
           </div>
         </div>

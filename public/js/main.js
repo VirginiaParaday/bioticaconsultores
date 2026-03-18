@@ -458,22 +458,83 @@ depSelect?.addEventListener("change", () => {
   muniSelect.value = "";
 });
 // =====================
-// TABS — Formulario / Chatbot GIO
+// TABS — Formulario / Chatbot GIO / Asesor Virtual
 // =====================
 function switchTab(tab) {
-  const tabForm  = document.getElementById('tab-form');
-  const tabChat  = document.getElementById('tab-chat');
-  const panelForm = document.getElementById('panel-form');
-  const panelChat = document.getElementById('panel-chat');
+  const tabForm    = document.getElementById('tab-form');
+  const tabChat    = document.getElementById('tab-chat');
+  const tabAsesor  = document.getElementById('tab-asesor');
+  const panelForm  = document.getElementById('panel-form');
+  const panelChat  = document.getElementById('panel-chat');
+  const panelAsesor = document.getElementById('panel-asesor');
+
+  [tabForm, tabChat, tabAsesor].forEach(t => t?.classList.remove('active'));
+  [panelForm, panelChat, panelAsesor].forEach(p => p?.classList.add('hidden'));
+
   if (tab === 'form') {
-    tabForm.classList.add('active');    tabChat.classList.remove('active');
-    panelForm.classList.remove('hidden'); panelChat.classList.add('hidden');
-  } else {
-    tabChat.classList.add('active');    tabForm.classList.remove('active');
-    panelChat.classList.remove('hidden'); panelForm.classList.add('hidden');
+    tabForm?.classList.add('active');
+    panelForm?.classList.remove('hidden');
+  } else if (tab === 'chat') {
+    tabChat?.classList.add('active');
+    panelChat?.classList.remove('hidden');
     if (!gioStarted) startGio();
     else document.getElementById('chat-input')?.focus();
+  } else if (tab === 'asesor') {
+    tabAsesor?.classList.add('active');
+    panelAsesor?.classList.remove('hidden');
   }
+}
+
+// ── Asesor Virtual ──
+const ASESORES = {
+  jose:   { nombre: 'José Ariel Dueñas Cepeda',  cargo: 'Director Técnico y Científico' },
+  elkin:  { nombre: 'Elkin René Briceño Lara',    cargo: 'Director Desarrollo Sostenible e Innovación' },
+  leonel: { nombre: 'Leonel Andrés Torres',        cargo: 'Apoyo Técnico en Campo' },
+};
+let asesorSeleccionado = null;
+
+function selectAsesor(card, id) {
+  document.querySelectorAll('.asesor-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  asesorSeleccionado = id;
+  const a = ASESORES[id];
+  const infoBox = document.getElementById('asesor-selected-info');
+  const msgText = document.getElementById('asesor-msg-text');
+  msgText.innerHTML = `Has seleccionado a <strong>${a.nombre}</strong> como tu asesor.<br><span style="font-size:.82rem;color:var(--text-soft)">${a.cargo}</span><br><br>Al continuar, tu solicitud será dirigida directamente a <strong>${a.nombre}</strong> para su atención personalizada.`;
+  infoBox.classList.remove('hidden');
+  infoBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function clearAsesor() {
+  document.querySelectorAll('.asesor-card').forEach(c => c.classList.remove('selected'));
+  document.getElementById('asesor-selected-info')?.classList.add('hidden');
+  asesorSeleccionado = null;
+}
+
+function solicitarConAsesor() {
+  if (!asesorSeleccionado) return;
+  const a = ASESORES[asesorSeleccionado];
+  sessionStorage.setItem('biotica_asesor', JSON.stringify({ id: asesorSeleccionado, ...a }));
+  switchTab('form');
+  showAsesorBanner(a);
+  document.getElementById('form-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function showAsesorBanner(asesor) {
+  document.getElementById('asesor-banner')?.remove();
+  const formCard = document.getElementById('panel-form');
+  if (!formCard) return;
+  const banner = document.createElement('div');
+  banner.id = 'asesor-banner';
+  banner.style.cssText = 'background:linear-gradient(135deg,#eef7f1,#f0faf3);border:1.5px solid var(--green-pale);border-left:4px solid var(--green-vivid);border-radius:12px;padding:.85rem 1.1rem;margin-bottom:1.25rem;display:flex;align-items:center;justify-content:space-between;gap:.75rem;font-size:.85rem;';
+  banner.innerHTML = `<span>🌿 Tu solicitud será atendida por <strong style="color:var(--green-vivid)">${asesor.nombre}</strong> — <span style="color:var(--text-soft)">${asesor.cargo}</span></span><button onclick="clearAsesorBanner()" style="background:none;border:none;cursor:pointer;color:var(--text-soft);font-size:1rem;padding:0;flex-shrink:0">✕</button>`;
+  const inner = formCard.querySelector('#form-feedback') || formCard.firstChild;
+  formCard.insertBefore(banner, inner);
+}
+
+function clearAsesorBanner() {
+  document.getElementById('asesor-banner')?.remove();
+  sessionStorage.removeItem('biotica_asesor');
 }
 
 // =====================

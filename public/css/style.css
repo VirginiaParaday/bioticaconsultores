@@ -1804,3 +1804,171 @@ textarea {
 #gio-video-player::-webkit-media-controls-toggle-closed-captions-button {
   display: none !important;
 }
+
+/* ASESOR VIRTUAL */
+.asesor-header {
+  margin-bottom: 1.75rem;
+}
+
+.asesor-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  color: var(--green-deep);
+  margin-bottom: .4rem;
+}
+
+.asesor-sub {
+  font-size: .88rem;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.asesores-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 650px) {
+  .asesores-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.asesor-card {
+  border: 2px solid var(--green-pale);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition);
+  background: var(--white);
+}
+
+.asesor-card:hover {
+  border-color: var(--green-vivid);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(58, 140, 88, .18);
+}
+
+.asesor-card.selected {
+  border-color: var(--green-vivid);
+  box-shadow: 0 0 0 3px rgba(58, 140, 88, .2);
+}
+
+.asesor-img-wrap {
+  width: 100%;
+  aspect-ratio: 3/4;
+  overflow: hidden;
+  background: #e8f5ec;
+}
+
+.asesor-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top;
+  display: block;
+  transition: transform .4s ease;
+}
+
+.asesor-card:hover .asesor-img {
+  transform: scale(1.04);
+}
+
+.asesor-info {
+  padding: .9rem 1rem .75rem;
+}
+
+.asesor-cargo {
+  display: block;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--green-vivid);
+  letter-spacing: .04em;
+  margin-bottom: .25rem;
+  text-transform: uppercase;
+}
+
+.asesor-nombre {
+  display: block;
+  font-size: .92rem;
+  font-weight: 600;
+  color: var(--green-deep);
+  font-family: 'Playfair Display', serif;
+}
+
+.asesor-check {
+  position: absolute;
+  top: .6rem;
+  right: .6rem;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--green-vivid);
+  color: white;
+  font-size: .8rem;
+  font-weight: 700;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(58, 140, 88, .4);
+}
+
+.asesor-card.selected .asesor-check {
+  display: flex;
+}
+
+.asesor-selected {
+  background: linear-gradient(135deg, #eef7f1, #f0faf3);
+  border: 1.5px solid var(--green-pale);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  margin-top: .5rem;
+}
+
+.asesor-selected-msg {
+  font-size: .9rem;
+  color: var(--text-dark);
+  line-height: 1.6;
+}
+
+.asesor-selected-msg strong {
+  color: var(--green-vivid);
+}
+
+.asesor-btn-primary {
+  padding: .65rem 1.4rem;
+  border-radius: 50px;
+  border: none;
+  background: var(--green-vivid);
+  color: white;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.asesor-btn-primary:hover {
+  background: var(--green-mid);
+}
+
+.asesor-btn-ghost {
+  padding: .65rem 1.4rem;
+  border-radius: 50px;
+  background: transparent;
+  border: 1.5px solid var(--green-vivid);
+  color: var(--green-vivid);
+  font-family: 'DM Sans', sans-serif;
+  font-size: .88rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.asesor-btn-ghost:hover {
+  background: var(--green-vivid);
+  color: white;
+}
