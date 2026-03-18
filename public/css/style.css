@@ -102,6 +102,17 @@ em {
   color: var(--white);
 }
 
+.logo-img {
+  height: 58px;
+  width: auto;
+  display: block;
+  transition: height var(--transition);
+}
+
+.navbar.scrolled .logo-img {
+  height: 38px;
+}
+
 .logo-leaf {
   font-size: 1.5rem;
 }
