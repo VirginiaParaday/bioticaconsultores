@@ -1,0 +1,7 @@
+# Crear .gitignore
+@"
+.env
+node_modules/
+uploads/
+*.log
+"@ | Out-File -Encoding utf8 .gitignore
