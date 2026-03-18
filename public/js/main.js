@@ -20,13 +20,47 @@ descripcion?.addEventListener('input', () => {
   charCount.textContent = descripcion.value.length;
 });
 
-// File upload label
-const fileInput = document.getElementById('documento');
+// File upload — drag & drop + button
+const fileInput   = document.getElementById('documento');
 const fileDisplay = document.getElementById('file-name-display');
+const dropZone    = document.getElementById('file-drop-zone');
+
+function setFile(file) {
+  if (!file) return;
+  fileDisplay.textContent = `📄 ${file.name}`;
+  dropZone?.classList.add('has-file');
+}
+
 fileInput?.addEventListener('change', () => {
-  fileDisplay.textContent = fileInput.files[0]
-    ? `📄 ${fileInput.files[0].name}`
-    : 'Subir archivo (PDF, Word, imagen — máx. 5 MB)';
+  setFile(fileInput.files[0]);
+  if (!fileInput.files[0]) {
+    fileDisplay.textContent = 'Arrastra tu archivo aquí';
+    dropZone?.classList.remove('has-file');
+  }
+});
+
+// Drag & drop events
+['dragenter','dragover'].forEach(evt => {
+  dropZone?.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dropZone.classList.add('dragover');
+  });
+});
+['dragleave','drop'].forEach(evt => {
+  dropZone?.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation();
+    dropZone.classList.remove('dragover');
+  });
+});
+dropZone?.addEventListener('drop', (e) => {
+  const dt = e.dataTransfer;
+  if (dt?.files?.length) {
+    // Transfer file to the input
+    const transfer = new DataTransfer();
+    transfer.items.add(dt.files[0]);
+    fileInput.files = transfer.files;
+    setFile(dt.files[0]);
+  }
 });
 
 // =====================
@@ -232,7 +266,10 @@ form?.addEventListener('submit', async (e) => {
       showFeedback(data.message, 'success');
       form.reset();
       if (charCount) charCount.textContent = '0';
-      if (fileDisplay) fileDisplay.textContent = 'Subir archivo (PDF, Word, imagen — máx. 5 MB)';
+      if (fileDisplay) fileDisplay.textContent = 'Arrastra tu archivo aquí';
+      dropZone?.classList.remove('has-file');
+      hideAllSubfields();
+      groupSubservicio?.classList.add('hidden');
     } else if (data.outOfPortfolio) {
       showFeedback(data.message, 'error');
     } else {

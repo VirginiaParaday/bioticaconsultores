@@ -3207,11 +3207,19 @@
                     accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
                     aria-label="Subir documento adjunto"
                   />
-                  <div class="file-label">
-                    <span class="file-icon">📎</span>
-                    <span id="file-name-display"
-                      >Subir archivo (PDF, Word, imagen — máx. 5 MB)</span
-                    >
+                  <div class="file-drop-zone" id="file-drop-zone">
+                    <div class="file-drop-icon">📂</div>
+                    <div class="file-drop-text">
+                      <span id="file-name-display"
+                        >Arrastra tu archivo aquí</span
+                      >
+                      <span class="file-drop-hint"
+                        >PDF, Word, imagen — máx. 5 MB</span
+                      >
+                    </div>
+                    <label for="documento" class="file-btn" id="file-btn">
+                      <span>Seleccionar archivo</span>
+                    </label>
                   </div>
                 </div>
               </div>
