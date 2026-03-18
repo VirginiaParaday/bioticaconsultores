@@ -41,23 +41,21 @@ fecha_creacion  TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
 
 -- ============================================================
 -- TABLA: campos_dinamicos
--- Almacena los campos específicos según subservicio (clave-valor)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS campos_dinamicos (
     id SERIAL PRIMARY KEY,
     solicitud_id UUID NOT NULL REFERENCES solicitudes (id) ON DELETE CASCADE,
-    campo VARCHAR(80) NOT NULL, -- ej. "eia_tipo", "if_extension"
+    campo VARCHAR(80) NOT NULL,
     valor TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- ============================================================
 -- TABLA: mensajes_gio
--- Historial de conversaciones del chatbot GIO
 -- ============================================================
 CREATE TABLE IF NOT EXISTS mensajes_gio (
     id SERIAL PRIMARY KEY,
-    session_id VARCHAR(64) NOT NULL, -- ID de sesión del browser
+    session_id VARCHAR(64) NOT NULL,
     rol VARCHAR(10) NOT NULL CHECK (rol IN ('user', 'assistant')),
     contenido TEXT NOT NULL,
     solicitud_id UUID REFERENCES solicitudes (id) ON DELETE SET NULL,
@@ -66,7 +64,6 @@ CREATE TABLE IF NOT EXISTS mensajes_gio (
 
 -- ============================================================
 -- TABLA: historial_estados
--- Auditoría de cambios de estado por solicitud
 -- ============================================================
 CREATE TABLE IF NOT EXISTS historial_estados (
     id SERIAL PRIMARY KEY,
@@ -129,7 +126,7 @@ CREATE TRIGGER trg_historial_estado
   FOR EACH ROW EXECUTE FUNCTION registrar_cambio_estado();
 
 -- ============================================================
--- VISTA: dashboard_stats (usada por GET /api/dashboard)
+-- VISTA: dashboard_stats
 -- ============================================================
 CREATE OR REPLACE VIEW dashboard_stats AS
 SELECT
