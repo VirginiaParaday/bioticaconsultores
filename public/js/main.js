@@ -379,100 +379,409 @@ depSelect?.addEventListener("change", () => {
 // TABS — Formulario / Chatbot GIO
 // =====================
 function switchTab(tab) {
-  const tabForm = document.getElementById('tab-form');
-  const tabChat = document.getElementById('tab-chat');
+  const tabForm  = document.getElementById('tab-form');
+  const tabChat  = document.getElementById('tab-chat');
   const panelForm = document.getElementById('panel-form');
   const panelChat = document.getElementById('panel-chat');
-
   if (tab === 'form') {
-    tabForm.classList.add('active');
-    tabChat.classList.remove('active');
-    panelForm.classList.remove('hidden');
-    panelChat.classList.add('hidden');
+    tabForm.classList.add('active');    tabChat.classList.remove('active');
+    panelForm.classList.remove('hidden'); panelChat.classList.add('hidden');
   } else {
-    tabChat.classList.add('active');
-    tabForm.classList.remove('active');
-    panelChat.classList.remove('hidden');
-    panelForm.classList.add('hidden');
-    document.getElementById('chat-input')?.focus();
+    tabChat.classList.add('active');    tabForm.classList.remove('active');
+    panelChat.classList.remove('hidden'); panelForm.classList.add('hidden');
+    if (!gioStarted) startGio();
+    else document.getElementById('chat-input')?.focus();
   }
 }
 
 // =====================
-// CHATBOT GIO
+// CHATBOT GIO — Flujo estructurado de captura de datos
 // =====================
-const chatInput   = document.getElementById('chat-input');
-const chatSend    = document.getElementById('chat-send');
-const chatMessages = document.getElementById('chat-messages');
+const MUNICIPIOS_BY_DEP = typeof MUNICIPIOS_COLOMBIA !== 'undefined' ? MUNICIPIOS_COLOMBIA : {};
 
-function appendMsg(text, role) {
-  const div = document.createElement('div');
+// Pasos del flujo
+const STEPS = [
+  { id: 'nombre',        label: 'Nombre completo',    pct: 10, question: '¿Cuál es tu nombre completo?', placeholder: 'Ej. María García López' },
+  { id: 'correo',        label: 'Correo electrónico', pct: 22, question: 'Por favor, indícame tu correo electrónico para enviarte la confirmación.', placeholder: 'ejemplo@correo.com', validate: v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : 'Por favor escribe un correo válido (ej. nombre@correo.com).' },
+  { id: 'telefono',      label: 'Teléfono de contacto', pct: 34, question: '¿Cuál es tu número de celular de contacto?', placeholder: '+57 300 123 4567', validate: v => /^[+\d\s\-().]{7,20}$/.test(v) ? null : 'Ingresa un número de teléfono válido.' },
+  { id: 'departamento',  label: 'Departamento',        pct: 50, question: '¿En qué departamento de Colombia se desarrollará tu proyecto?', placeholder: 'Ej. Santander', isDepto: true },
+  { id: 'municipio',     label: 'Municipio',           pct: 64, question: '¿Y en qué municipio exactamente?', placeholder: 'Ej. Bucaramanga', isMunicipio: true },
+  { id: 'servicio',      label: 'Tipo de servicio',    pct: 78, question: '¿Qué tipo de servicio ambiental necesitas?', isServicio: true },
+  { id: 'urgencia',      label: 'Nivel de urgencia',   pct: 90, question: '¿Cuál es el nivel de urgencia de tu solicitud?', isUrgencia: true },
+  { id: 'descripcion',   label: 'Descripción',         pct: 96, question: 'Cuéntame brevemente en qué consiste tu necesidad o proyecto.', placeholder: 'Describe tu requerimiento en pocas palabras...' },
+];
+
+const SERVICIOS_CHAT = {
+  'Consultoría Ambiental':        'gestion-ambiental',
+  'Ordenamiento y Planificación': 'ordenamiento-planificacion',
+  'Biodiversidad y Restauración': 'biodiversidad-restauracion',
+  'Manejo Forestal':              'manejo-forestal',
+  'Ecoturismo':                   'ecoturismo',
+  'Innovación y Sostenibilidad':  'innovacion-sostenibilidad',
+  'Suministros':                  'suministros',
+};
+
+let gioStarted   = false;
+let currentStep  = 0;
+let gioData      = {};
+let waitingFreeText = false;
+
+const chatInputEl   = document.getElementById('chat-input');
+const chatSendBtn   = document.getElementById('chat-send');
+const chatMsgs      = document.getElementById('chat-messages');
+const quickReplies  = document.getElementById('chat-quick-replies');
+const progressFill  = document.getElementById('chat-progress-fill');
+const progressLabel = document.getElementById('chat-progress-label');
+
+// ── Helpers ──
+function scrollChat() { if (chatMsgs) chatMsgs.scrollTop = chatMsgs.scrollHeight; }
+
+function addMsg(html, role) {
+  const div  = document.createElement('div');
   div.className = `chat-msg ${role}`;
-  const bubble = document.createElement('span');
-  bubble.className = 'chat-bubble';
-  bubble.innerHTML = text;
-  div.appendChild(bubble);
-  chatMessages.appendChild(div);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
-  return div;
+  const bub  = document.createElement('span');
+  bub.className = 'chat-bubble';
+  bub.innerHTML = html;
+  div.appendChild(bub);
+  chatMsgs?.appendChild(div);
+  scrollChat();
 }
 
-function showTyping() {
+function showTypingIndicator() {
   const div = document.createElement('div');
   div.className = 'chat-msg bot chat-typing';
-  div.id = 'chat-typing';
+  div.id = 'gio-typing';
   div.innerHTML = '<span class="chat-bubble"><span></span><span></span><span></span></span>';
-  chatMessages.appendChild(div);
-  chatMessages.scrollTop = chatMessages.scrollHeight;
+  chatMsgs?.appendChild(div);
+  scrollChat();
+}
+function hideTyping() { document.getElementById('gio-typing')?.remove(); }
+
+function botMsg(html, delay = 600) {
+  return new Promise(resolve => {
+    showTypingIndicator();
+    setTimeout(() => {
+      hideTyping();
+      addMsg(html, 'bot');
+      resolve();
+    }, delay);
+  });
 }
 
-function removeTyping() {
-  document.getElementById('chat-typing')?.remove();
+function setProgress(pct, label) {
+  if (progressFill)  progressFill.style.width  = pct + '%';
+  if (progressLabel) progressLabel.textContent  = label;
 }
 
-async function sendChat() {
-  const text = chatInput?.value.trim();
+function setQuickReplies(options) {
+  if (!quickReplies) return;
+  quickReplies.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quick-reply';
+    btn.textContent = typeof opt === 'string' ? opt : opt.label;
+    btn.addEventListener('click', () => handleUserInput(typeof opt === 'string' ? opt : opt.value));
+    quickReplies.appendChild(btn);
+  });
+}
+function clearQuickReplies() { if (quickReplies) quickReplies.innerHTML = ''; }
+
+function setInputPlaceholder(text) { if (chatInputEl) chatInputEl.placeholder = text; }
+function enableInput(on = true) {
+  if (chatInputEl) chatInputEl.disabled = !on;
+  if (chatSendBtn) chatSendBtn.disabled = !on;
+}
+
+// ── Start ──
+async function startGio() {
+  gioStarted  = true;
+  currentStep = 0;
+  gioData     = {};
+  setProgress(0, 'Inicio');
+  clearQuickReplies();
+
+  await botMsg('¡Bienvenido a la plataforma de gestión ambiental de <strong>Biótica Consultores</strong>! 🌿', 500);
+  await botMsg('Para poder atender tu solicitud necesito algunos datos básicos. Empecemos…', 700);
+  await askStep(0);
+}
+
+// ── Ask current step ──
+async function askStep(stepIdx) {
+  const step = STEPS[stepIdx];
+  if (!step) return;
+  setProgress(step.pct, step.label);
+  clearQuickReplies();
+  enableInput(true);
+
+  // Sección headers
+  if (stepIdx === 0) await botMsg('<span style="font-size:.8rem;color:var(--text-soft);font-weight:600;text-transform:uppercase;letter-spacing:.1em">📇 Datos de contacto</span>', 200);
+  if (stepIdx === 3) await botMsg('<span style="font-size:.8rem;color:var(--text-soft);font-weight:600;text-transform:uppercase;letter-spacing:.1em">📍 Ubicación del proyecto</span>', 200);
+  if (stepIdx === 5) await botMsg('<span style="font-size:.8rem;color:var(--text-soft);font-weight:600;text-transform:uppercase;letter-spacing:.1em">🌿 Tipo de servicio</span>', 200);
+  if (stepIdx === 6) await botMsg('<span style="font-size:.8rem;color:var(--text-soft);font-weight:600;text-transform:uppercase;letter-spacing:.1em">⏱ Urgencia</span>', 200);
+  if (stepIdx === 7) await botMsg('<span style="font-size:.8rem;color:var(--text-soft);font-weight:600;text-transform:uppercase;letter-spacing:.1em">📝 Descripción</span>', 200);
+
+  await botMsg(step.question, 500);
+  setInputPlaceholder(step.placeholder || 'Escribe tu respuesta...');
+
+  // Quick replies para opciones fijas
+  if (step.isServicio) {
+    setQuickReplies(Object.keys(SERVICIOS_CHAT));
+    enableInput(false);
+  } else if (step.isUrgencia) {
+    setQuickReplies(['🔴 Alta — 24 horas', '🟡 Media — 2-3 días', '🟢 Baja — 5 días']);
+    enableInput(false);
+  } else if (step.isDepto) {
+    // Mostrar las primeras opciones como sugerencia
+    const deps = Object.keys(MUNICIPIOS_BY_DEP).sort().slice(0, 6);
+    setQuickReplies([...deps, '…ver más']);
+    enableInput(true);
+  }
+
+  chatInputEl?.focus();
+}
+
+// ── Handle user input ──
+async function handleUserInput(rawText) {
+  const text = rawText?.trim();
   if (!text) return;
-  chatInput.value = '';
-  appendMsg(text, 'user');
-  showTyping();
-  chatSend.disabled = true;
+
+  // Si el usuario está en modo libre (pregunta fuera del flujo)
+  if (waitingFreeText) {
+    waitingFreeText = false;
+    addMsg(text, 'user');
+    await handleFreeQuestion(text);
+    return;
+  }
+
+  addMsg(text, 'user');
+  clearQuickReplies();
+  enableInput(false);
+
+  const step = STEPS[currentStep];
+  if (!step) return;
+
+  // Validación
+  if (step.validate) {
+    const err = step.validate(text);
+    if (err) {
+      await botMsg(`⚠️ ${err}`, 400);
+      enableInput(true);
+      setInputPlaceholder(step.placeholder || '');
+      if (step.isServicio) setQuickReplies(Object.keys(SERVICIOS_CHAT));
+      if (step.isUrgencia) setQuickReplies(['🔴 Alta — 24 horas', '🟡 Media — 2-3 días', '🟢 Baja — 5 días']);
+      return;
+    }
+  }
+
+  // Procesar según tipo de campo
+  if (step.isDepto) {
+    // Buscar departamento (fuzzy)
+    if (text === '…ver más') {
+      const allDeps = Object.keys(MUNICIPIOS_BY_DEP).sort();
+      setQuickReplies(allDeps.slice(0, 20));
+      enableInput(true);
+      return;
+    }
+    const found = Object.keys(MUNICIPIOS_BY_DEP).find(d => d.toLowerCase() === text.toLowerCase())
+                || Object.keys(MUNICIPIOS_BY_DEP).find(d => d.toLowerCase().includes(text.toLowerCase()));
+    if (!found) {
+      await botMsg(`No encontré ese departamento. ¿Podrías escribirlo de otra forma? Algunos ejemplos: <em>Santander, Antioquia, Cundinamarca</em>.`, 400);
+      const deps = Object.keys(MUNICIPIOS_BY_DEP).filter(d => d.toLowerCase().includes(text.toLowerCase().slice(0,3))).slice(0, 6);
+      if (deps.length) setQuickReplies(deps);
+      enableInput(true);
+      return;
+    }
+    gioData.departamento = found;
+    currentStep++;
+    // Municipios del depto
+    const munis = MUNICIPIOS_BY_DEP[found] || [];
+    await botMsg(`¿Y en qué municipio de <strong>${found}</strong> exactamente?`, 500);
+    setProgress(STEPS[currentStep-1].pct, 'Municipio');
+    setQuickReplies(munis.slice(0, 8));
+    setInputPlaceholder('Escribe o elige el municipio...');
+    enableInput(true);
+    return;
+
+  } else if (step.isMunicipio) {
+    const dep   = gioData.departamento;
+    const munis = dep ? (MUNICIPIOS_BY_DEP[dep] || []) : [];
+    const found = munis.find(m => m.toLowerCase() === text.toLowerCase())
+               || munis.find(m => m.toLowerCase().includes(text.toLowerCase()));
+    if (dep && munis.length && !found) {
+      await botMsg(`No encontré ese municipio en ${dep}. ¿Podrías escribirlo de nuevo?`, 400);
+      const sug = munis.filter(m => m.toLowerCase().includes(text.toLowerCase().slice(0,3))).slice(0,6);
+      if (sug.length) setQuickReplies(sug);
+      enableInput(true);
+      return;
+    }
+    gioData.municipio = found || text;
+
+  } else if (step.isServicio) {
+    const svcKey = SERVICIOS_CHAT[text] || Object.entries(SERVICIOS_CHAT).find(([k]) => k.toLowerCase().includes(text.toLowerCase()))?.[1];
+    if (!svcKey) {
+      await botMsg('Por favor selecciona una de las opciones disponibles.', 400);
+      setQuickReplies(Object.keys(SERVICIOS_CHAT));
+      enableInput(false);
+      return;
+    }
+    gioData.servicio      = svcKey;
+    gioData.servicioNombre = Object.keys(SERVICIOS_CHAT).find(k => SERVICIOS_CHAT[k] === svcKey) || text;
+
+  } else if (step.isUrgencia) {
+    if (text.includes('Alta') || text.includes('alta') || text.includes('24'))      gioData.urgencia = 'alta';
+    else if (text.includes('Media') || text.includes('media') || text.includes('2')) gioData.urgencia = 'media';
+    else if (text.includes('Baja') || text.includes('baja') || text.includes('5'))  gioData.urgencia = 'baja';
+    else { await botMsg('Por favor elige Alta, Media o Baja.', 400); setQuickReplies(['🔴 Alta — 24 horas', '🟡 Media — 2-3 días', '🟢 Baja — 5 días']); enableInput(false); return; }
+
+  } else {
+    gioData[step.id] = text;
+  }
+
+  currentStep++;
+
+  // Si terminamos todos los pasos → mostrar resumen
+  if (currentStep >= STEPS.length) {
+    await showSummary();
+    return;
+  }
+
+  // Confirmaciones intermedias
+  if (currentStep === 3) await botMsg('Perfecto, ya tengo tus datos de contacto. 👍', 300);
+  if (currentStep === 5) await botMsg(`Anotado: <strong>${gioData.municipio}, ${gioData.departamento}</strong>. ✅`, 300);
+
+  await askStep(currentStep);
+}
+
+// ── Resumen y confirmación ──
+async function showSummary() {
+  setProgress(100, 'Confirmación');
+  clearQuickReplies();
+  enableInput(false);
+
+  const urgLabels = { alta: '🔴 Alta (24h)', media: '🟡 Media (2-3 días)', baja: '🟢 Baja (5 días)' };
+
+  await botMsg('¡Perfecto! Ya tengo todos tus datos. Déjame hacer un resumen antes de enviar tu solicitud:', 600);
+
+  const summaryDiv = document.createElement('div');
+  summaryDiv.className = 'chat-msg bot';
+  summaryDiv.innerHTML = `<div class="chat-summary">
+    <div><span class="sum-label">Nombre</span><br><span class="sum-val">${gioData.nombre||'—'}</span></div>
+    <div><span class="sum-label">Correo</span><br><span class="sum-val">${gioData.correo||'—'}</span></div>
+    <div><span class="sum-label">Teléfono</span><br><span class="sum-val">${gioData.telefono||'—'}</span></div>
+    <div><span class="sum-label">Ubicación</span><br><span class="sum-val">${gioData.municipio||'—'}, ${gioData.departamento||'—'}</span></div>
+    <div><span class="sum-label">Servicio</span><br><span class="sum-val">${gioData.servicioNombre||'—'}</span></div>
+    <div><span class="sum-label">Urgencia</span><br><span class="sum-val">${urgLabels[gioData.urgencia]||'—'}</span></div>
+    <div><span class="sum-label">Descripción</span><br><span class="sum-val">${gioData.descripcion||'—'}</span></div>
+    <div class="chat-actions">
+      <button class="chat-action-btn chat-action-primary" onclick="submitGioForm()">✅ Confirmar y generar orden</button>
+      <button class="chat-action-btn chat-action-ghost"   onclick="restartGio()">↩ Volver a empezar</button>
+    </div>
+  </div>`;
+  chatMsgs?.appendChild(summaryDiv);
+  scrollChat();
+}
+
+// ── Enviar solicitud desde GIO ──
+async function submitGioForm() {
+  const btns = document.querySelectorAll('.chat-action-btn');
+  btns.forEach(b => b.disabled = true);
+
+  await botMsg('Enviando tu solicitud… ⏳', 300);
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const fd = new FormData();
+    fd.append('nombre',       gioData.nombre       || '');
+    fd.append('correo',       gioData.correo        || '');
+    fd.append('telefono',     gioData.telefono      || '');
+    fd.append('departamento', gioData.departamento  || '');
+    fd.append('municipio',    gioData.municipio     || '');
+    fd.append('servicio',     gioData.servicio      || '');
+    fd.append('urgencia',     gioData.urgencia      || 'media');
+    fd.append('descripcion',  gioData.descripcion   || '');
+
+    // Si hay usuario registrado, adjuntarlo
+    const userId = sessionStorage.getItem('biotica_user_id');
+    if (userId) fd.append('usuario_id', userId);
+
+    const res  = await fetch('/api/solicitud', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (data.success) {
+      setProgress(100, '¡Listo!');
+      await botMsg(`🎉 <strong>¡Solicitud enviada con éxito!</strong><br>Tu número de orden es: <strong style="color:var(--green-vivid);font-size:1.05rem">${data.orden}</strong><br><span style="font-size:.8rem;color:var(--text-soft)">Te enviaremos la confirmación a ${gioData.correo}</span>`, 400);
+
+      const doneDiv = document.createElement('div');
+      doneDiv.className = 'chat-msg bot';
+      doneDiv.innerHTML = `<div class="chat-summary" style="text-align:center">
+        <div style="font-size:2rem;margin-bottom:.5rem">✅</div>
+        <div class="sum-val" style="font-size:1.1rem">${data.orden}</div>
+        <div class="sum-label">Guarda este número para hacer seguimiento</div>
+        <div class="chat-actions" style="justify-content:center">
+          <button class="chat-action-btn chat-action-ghost" onclick="startGio()">Nueva solicitud</button>
+          <button class="chat-action-btn chat-action-primary" onclick="switchTab('form')">Ir al formulario</button>
+        </div>
+      </div>`;
+      chatMsgs?.appendChild(doneDiv);
+      scrollChat();
+    } else {
+      await botMsg(`⚠️ ${data.message || 'Hubo un error al enviar. ¿Quieres intentar de nuevo?'}`, 400);
+      btns.forEach(b => b.disabled = false);
+    }
+  } catch(err) {
+    await botMsg('Error de conexión. Por favor intenta de nuevo.', 400);
+    btns.forEach(b => b.disabled = false);
+  }
+}
+
+// ── Reiniciar ──
+function restartGio() {
+  if (chatMsgs) chatMsgs.innerHTML = '';
+  gioStarted  = false;
+  currentStep = 0;
+  gioData     = {};
+  clearQuickReplies();
+  setProgress(0, 'Inicio');
+  enableInput(true);
+  startGio();
+}
+
+// ── Preguntas libres fuera del flujo ──
+async function handleFreeQuestion(text) {
+  showTypingIndicator();
+  try {
+    const res  = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: `Eres GIO, el asistente virtual amigable y experto de Biótica Consultores Ltda, una empresa colombiana de consultoría ambiental con más de 15 años de experiencia. 
-Ayudas a los usuarios a entender los servicios de la empresa y a orientar sus solicitudes. Los servicios que ofrece Biótica son:
-1. Consultoría Ambiental (EIA, DIA, PMA, DAA, licencias, auditorías)
-2. Ordenamiento y Planificación territorial
-3. Biodiversidad y Restauración ecológica
-4. Manejo Forestal
-5. Ecoturismo
-6. Innovación y Sostenibilidad
-7. Suministros ambientales
-
-Responde siempre en español, de forma clara, cálida y profesional. Cuando el usuario quiera hacer una solicitud formal, indícale que puede usar el formulario en la pestaña "Formulario". Sé conciso (máximo 3 párrafos cortos).`,
+        max_tokens: 500,
+        system: `Eres GIO, asistente virtual de Biótica Consultores Ltda, empresa colombiana de consultoría ambiental. Responde en español, de forma breve y amigable (máximo 2 párrafos). Si el usuario quiere hacer una solicitud, dile que continúe con el formulario de GIO.`,
         messages: [{ role: 'user', content: text }]
       })
     });
     const data = await res.json();
-    removeTyping();
-    const reply = data.content?.map(b => b.text || '').join('') || 'Lo siento, no pude procesar tu mensaje. Intenta de nuevo.';
-    appendMsg(reply.replace(/\n/g, '<br>'), 'bot');
-  } catch (err) {
-    removeTyping();
-    appendMsg('Hubo un error de conexión. Por favor intenta de nuevo.', 'bot');
-  } finally {
-    chatSend.disabled = false;
-    chatInput?.focus();
+    hideTyping();
+    const reply = data.content?.map(b => b.text||'').join('') || 'No pude responder eso. ¿Continuamos con tu solicitud?';
+    addMsg(reply.replace(/\n/g, '<br>'), 'bot');
+  } catch(e) {
+    hideTyping();
+    addMsg('Error de conexión. ¿Continuamos con tu solicitud?', 'bot');
+  }
+  // Retomar flujo si estamos en medio de pasos
+  if (currentStep < STEPS.length && gioStarted) {
+    setTimeout(() => askStep(currentStep), 800);
   }
 }
 
-chatSend?.addEventListener('click', sendChat);
-chatInput?.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChat(); }
+// ── Event listeners ──
+function handleSendBtn() {
+  const text = chatInputEl?.value.trim();
+  if (!text) return;
+  if (chatInputEl) chatInputEl.value = '';
+  handleUserInput(text);
+}
+
+chatSendBtn?.addEventListener('click', handleSendBtn);
+chatInputEl?.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendBtn(); }
 });

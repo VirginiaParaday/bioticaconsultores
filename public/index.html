@@ -3310,21 +3310,27 @@
                   ><span class="chat-dot"></span> En línea</span
                 >
               </div>
-            </div>
-            <div class="chat-messages" id="chat-messages">
-              <div class="chat-msg bot">
-                <span class="chat-bubble"
-                  >¡Hola! Soy GIO, el asistente virtual de Biótica Consultores.
-                  🌿<br />¿En qué servicio ambiental puedo ayudarte hoy?</span
+              <div class="chat-progress" id="chat-progress">
+                <span class="chat-progress-label" id="chat-progress-label"
+                  >Inicio</span
                 >
+                <div class="chat-progress-bar">
+                  <div
+                    class="chat-progress-fill"
+                    id="chat-progress-fill"
+                    style="width: 0%"
+                  ></div>
+                </div>
               </div>
             </div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-quick-replies" id="chat-quick-replies"></div>
             <div class="chat-input-area">
               <input
                 type="text"
                 id="chat-input"
                 class="chat-input"
-                placeholder="Escribe tu mensaje..."
+                placeholder="Escribe tu respuesta..."
                 autocomplete="off"
               />
               <button
