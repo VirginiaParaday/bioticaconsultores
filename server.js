@@ -5,6 +5,7 @@ const crypto   = require('crypto');
 const { Pool } = require('pg');
 const path     = require('path');
 const fs       = require('fs');
+const { SolicitudHandler } = require('./strategies');
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -101,6 +102,11 @@ const PREFIJOS_SUBSERVICIO = {
   'sum-monitoreo':'sum1_','sum-insumos-forestales':'sum2_',
   'sum-kits-restauracion':'sum3_','sum-herramientas':'sum4_','sum-seguridad':'sum5_',
 };
+
+// ============================================================
+// STRATEGY PATTERN — Handler de solicitudes
+// ============================================================
+const solicitudHandler = new SolicitudHandler();
 
 // ============================================================
 // HELPERS — Solicitudes
@@ -256,7 +262,7 @@ app.get('/api/usuarios/:id/ordenes', async (req, res) => {
 });
 
 // ============================================================
-// Solicitud — Crear
+// Solicitud — Crear (usando Strategy Pattern)
 // ============================================================
 app.post('/api/solicitud', upload.single('documento'), async (req, res) => {
   const { nombre, correo, telefono, servicio, subservicio,
@@ -268,6 +274,9 @@ app.post('/api/solicitud', upload.single('documento'), async (req, res) => {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo))
     return res.status(400).json({ success: false, message: 'Por favor ingresa un correo válido.' });
 
+  // Validar que el servicio existe usando el handler
+  const SERVICIOS_VALIDOS = solicitudHandler.getAvailableServices();
+
   if (!SERVICIOS_VALIDOS.includes(servicio))
     return res.status(422).json({ success: false, outOfPortfolio: true, message: 'Este servicio no está en nuestro portafolio.' });
 
@@ -277,35 +286,24 @@ app.post('/api/solicitud', upload.single('documento'), async (req, res) => {
 
     const orden = await generarOrden(client);
 
-    const { rows } = await client.query(
-      `INSERT INTO solicitudes
-        (orden, nombre, correo, telefono, departamento, municipio,
-         servicio, subservicio, descripcion, urgencia, archivo, estado, usuario_id)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,'Recibida',$12) RETURNING id`,
-      [
-        orden, nombre, correo, telefono,
-        departamento || null, municipio || null,
-        servicio, subservicio || null, descripcion, urgencia,
-        req.file ? req.file.filename : null,
-        usuario_id || null
-      ]
-    );
+    // Preparar datos para el handler
+    const data = {
+      orden, nombre, correo, telefono, departamento, municipio,
+      servicio, subservicio, descripcion, urgencia,
+      archivo: req.file ? req.file.filename : null,
+      usuario_id: usuario_id || null,
+      ...req.body // Incluir campos dinámicos
+    };
 
-    const solicitudId = rows[0].id;
-    const campos = extraerCamposDinamicos(req.body, subservicio);
-
-    if (Object.keys(campos).length > 0) {
-      const entries = Object.entries(campos);
-      const vals = entries.flatMap(([campo, valor]) => [solicitudId, campo, valor]);
-      const ph   = entries.map((_,i) => `($${i*3+1},$${i*3+2},$${i*3+3})`).join(',');
-      await client.query(`INSERT INTO campos_dinamicos (solicitud_id, campo, valor) VALUES ${ph}`, vals);
-    }
+    // Usar el Strategy Pattern para procesar
+    const result = await solicitudHandler.process(data, client);
 
     await client.query('COMMIT');
     return res.json({ success: true, orden, message: `Tu orden ha sido generada: ${orden}.` });
 
   } catch (err) {
     await client.query('ROLLBACK');
+    console.error('❌ ERROR SOLICITUD:', err.message);
     return res.status(500).json({ success: false, message: 'Error interno del servidor.' });
   } finally {
     client.release();
